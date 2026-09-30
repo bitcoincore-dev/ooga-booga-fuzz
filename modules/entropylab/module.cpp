@@ -402,7 +402,7 @@ Entropylab::psbt_parse(std::span<const uint8_t> buffer) const {
   if (result_ptr == nullptr)
     return std::nullopt;
   std::string result(result_ptr);
-  psbt_fuzz_lib_free_c_string(result_ptr);
+  entropylab_free_c_string(result_ptr);
   return result;
 }
 

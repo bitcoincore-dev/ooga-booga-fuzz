@@ -52,7 +52,6 @@ extern "C" int entropylab_scrypt_kdf(const uint8_t *pass, size_t pass_len,
                                      size_t out_len, uint8_t *out, size_t cap);
 extern "C" void entropylab_free_c_string(char *ptr);
 extern "C" char *entropylab_psbt_parse(const uint8_t *data, size_t len);
-extern "C" void psbt_fuzz_lib_free_c_string(char *ptr);
 
 // ── script_build_roundtrip helpers ───────────────────────────────────────────
 

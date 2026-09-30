@@ -1,17 +1,3 @@
-use std::ffi::CString;
-use std::os::raw::c_char;
-
-unsafe fn str_to_c_string(input: &str) -> *mut c_char {
-    CString::new(input).unwrap().into_raw()
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn psbt_fuzz_lib_free_c_string(ptr: *mut c_char) {
-    if !ptr.is_null() {
-        let _ = CString::from_raw(ptr);
-    }
-}
-
 fn get_last_error() -> String {
     unsafe {
         let len = crate::psbt::psbt_last_error(std::ptr::null_mut(), 0);
@@ -101,12 +87,12 @@ fn format_psbt(doc: &serde_json::Value) -> Option<String> {
                 }
                 "PSBT_IN_BIP32_DERIVATION" | "PSBT_IN_TAP_BIP32_DERIVATION" => bip32_count += 1,
                 "PSBT_IN_FINAL_SCRIPTSIG" => {
-                    if let Ok(val) = pair.get("value")?.as_str() {
+                    if let Some(val) = pair.get("value")?.as_str() {
                         if !val.is_empty() { finalized = true; }
                     }
                 }
                 "PSBT_IN_FINAL_SCRIPTWITNESS" => {
-                    if let Ok(val) = pair.get("value")?.as_str() {
+                    if let Some(val) = pair.get("value")?.as_str() {
                         if !val.is_empty() { finalized = true; }
                     }
                 }

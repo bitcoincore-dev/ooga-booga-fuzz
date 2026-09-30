@@ -2659,14 +2659,14 @@ fn format_psbt(doc: &serde_json::Value) -> Option<String> {
                 }
                 "PSBT_IN_BIP32_DERIVATION" | "PSBT_IN_TAP_BIP32_DERIVATION" => bip32_count += 1,
                 "PSBT_IN_FINAL_SCRIPTSIG" => {
-                    if let Ok(val) = pair.get("value")?.as_str() {
+                    if let Some(val) = pair.get("value")?.as_str() {
                         if !val.is_empty() {
                             finalized = true;
                         }
                     }
                 }
                 "PSBT_IN_FINAL_SCRIPTWITNESS" => {
-                    if let Ok(val) = pair.get("value")?.as_str() {
+                    if let Some(val) = pair.get("value")?.as_str() {
                         if !val.is_empty() {
                             finalized = true;
                         }

@@ -1336,7 +1336,7 @@ mod tests {
     use bitcoin::{OutPoint, Sequence, TxIn, Txid};
 
     fn hex(text: &str) -> Vec<u8> {
-        crate::hex_decode(text).unwrap()
+        super::hex_decode(text).unwrap()
     }
 
     fn pair(key: &str, value: &str) -> RawPair {
