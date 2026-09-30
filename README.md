@@ -64,6 +64,7 @@ Available targets:
 - `descriptor_parse`
 - `miniscript_parse`
 - `address_parse`
+- `script_build_roundtrip`
 
 **Transactions**
 - `transaction_eval`

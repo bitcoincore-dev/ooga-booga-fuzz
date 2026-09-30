@@ -3,7 +3,7 @@
 This document tracks the complete mapping between `entropylab-wasm` exports and
 `bitcoinfuzz` targets, with a roadmap to 100 % coverage.
 
-## Current state (21 / ~35 exports covered)
+## Current state (22 / ~35 exports covered)
 
 | # | bitcoinfuzz target | entropylab-wasm export | JS facade | Status |
 |---|-------------------|------------------------|-----------|--------|
@@ -28,6 +28,7 @@ This document tracks the complete mapping between `entropylab-wasm` exports and
 | 19 | `bip39_validate` | `el_bip39_validate` | `bip39.js` | ✅ |
 | 20 | `aezeed_decipher` | `el_aezeed_decipher` | `aezeed.js` | ✅ |
 | 21 | `scrypt_kdf` | `el_scrypt` | `aezeed.js` | ✅ |
+| 22 | `script_build_roundtrip` | `el_spk_*` + `el_script_*` + `el_addr_from_script` | `addresses.js` | ✅ |
 
 ## Remaining gaps
 
@@ -52,16 +53,16 @@ This document tracks the complete mapping between `entropylab-wasm` exports and
 ### Scripts / Addresses (`addresses.js`)
 | Export | Existing target? | Notes |
 |--------|------------------|-------|
-| `el_spk_p2pkh` | Partial (`script_parse` exists in driver) | Could map to `script_parse` if driver output format aligns |
-| `el_spk_p2wpkh` | No | — |
-| `el_spk_p2sh_p2wpkh` | No | — |
-| `el_spk_p2tr_key` | No | — |
-| `el_spk_p2tr_leaf` | No | — |
-| `el_spk_p2sh` | No | — |
-| `el_spk_p2wsh` | No | — |
-| `el_script_multisig` | No | — |
-| `el_script_multisig_tr` | No | — |
-| `el_addr_from_script` | No (`address_parse` goes the other direction) | Needs new driver target or module-specific target |
+| `el_spk_p2pkh` | ✅ `script_build_roundtrip` | — |
+| `el_spk_p2wpkh` | ✅ `script_build_roundtrip` | — |
+| `el_spk_p2sh_p2wpkh` | ✅ `script_build_roundtrip` | — |
+| `el_spk_p2tr_key` | ✅ `script_build_roundtrip` | — |
+| `el_spk_p2tr_leaf` | ✅ `script_build_roundtrip` | — |
+| `el_spk_p2sh` | ✅ `script_build_roundtrip` | — |
+| `el_spk_p2wsh` | ✅ `script_build_roundtrip` | — |
+| `el_script_multisig` | ✅ `script_build_roundtrip` | — |
+| `el_script_multisig_tr` | ✅ `script_build_roundtrip` | — |
+| `el_addr_from_script` | ✅ `script_build_roundtrip` | — |
 
 ### Misc
 | Export | Existing target? | Notes |
@@ -80,7 +81,7 @@ This document tracks the complete mapping between `entropylab-wasm` exports and
 | `bip39.js` | `el_bip39_*` | `bip39_mnemonic_roundtrip`, `bip39_validate` | ~75 % |
 | `base58.js` | `el_b58check_*` | Used internally only | 0 % |
 | `bech32.js` | `el_bech32m_*` | `bech32_roundtrip` | ~50 % |
-| `addresses.js` | `el_spk_*`, `el_script_*`, `el_addr_from_script` | `descriptor_parse`, `miniscript_parse`, `address_parse` | ~40 % |
+| `addresses.js` | `el_spk_*`, `el_script_*`, `el_addr_from_script` | `script_build_roundtrip`, `descriptor_parse`, `miniscript_parse`, `address_parse` | ~95 % |
 | `tx.js` | `el_tx_parse`, `el_sighash_segwit_v0` | `transaction_eval`, `sighash_compute` | ~90 % |
 | `aezeed.js` | `el_aezeed_decipher`, `el_scrypt` | `aezeed_decipher`, `scrypt_kdf` | ~90 % |
 | `core-importdescriptors.js` | `el_desc_derive` | `descriptor_parse`, `miniscript_parse` | ✅ 100 % |
