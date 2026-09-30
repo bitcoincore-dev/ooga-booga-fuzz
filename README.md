@@ -45,15 +45,36 @@ FUZZ=<target> ./bitcoinfuzz [-max_total_time=N]
 
 Available targets:
 
+**BIP32 / HD keys**
 - `bip32_master_keygen`
 - `bip32_deserialize_extended_key`
 - `bip32_derive_from_path`
+- `hd_ckd_pub`
+
+**secp256k1**
 - `pubkey_parse`
 - `private_to_public_key`
 - `sign_compact`
+- `sign_der`
 - `sign_verify`
+- `point_add`
+- `point_mul`
+
+**Descriptors / Scripts / Addresses**
 - `descriptor_parse`
+- `miniscript_parse`
+- `address_parse`
+
+**Transactions**
 - `transaction_eval`
+- `sighash_compute`
+
+**bech32 / BIP39 / aezeed**
+- `bech32_roundtrip`
+- `bip39_mnemonic_roundtrip`
+- `bip39_validate`
+- `aezeed_decipher`
+- `scrypt_kdf`
 
 ## Platform notes
 
