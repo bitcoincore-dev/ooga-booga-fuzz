@@ -1955,12 +1955,12 @@ pub unsafe extern "C" fn entropylab_sign_verify(
 
 #[no_mangle]
 pub unsafe extern "C" fn entropylab_descriptor_parse(desc: *const u8, desc_len: usize) -> i32 {
-    let mut out = [0u8; 1];
-    let result = crate::descriptor::el_desc_derive(desc, desc_len, 0, 0, out.as_mut_ptr(), 1);
-    if result >= 0 {
-        1
-    } else {
+    let mut out = [0u8; 4096];
+    let result = crate::descriptor::el_desc_derive(desc, desc_len, 0, 0, out.as_mut_ptr(), 4096);
+    if result == -1 {
         0
+    } else {
+        1
     }
 }
 
@@ -1973,6 +1973,18 @@ pub unsafe extern "C" fn entropylab_tx_eval(
     out: *mut u8,
     cap: usize,
 ) -> i32 {
+    // Exercise el_tx_parse (size query first, then full parse)
+    let size = el_tx_parse(input, input_len, std::ptr::null_mut(), 0);
+    if size < 0 {
+        return size;
+    }
+    let mut flat = vec![0u8; size as usize];
+    let parsed = el_tx_parse(input, input_len, flat.as_mut_ptr(), flat.len());
+    if parsed < 0 {
+        return parsed;
+    }
+
+    // Compute the bitcoinfuzz expected output format
     let bytes = read(input, input_len);
     let mut cursor: &[u8] = bytes;
     let tx = match Transaction::consensus_decode_from_finite_reader(&mut cursor) {

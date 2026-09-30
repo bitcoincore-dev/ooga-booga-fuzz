@@ -5,7 +5,7 @@ This document tracks the complete mapping between `entropylab-wasm` exports and
 
 ## Current state — all meaningful exports covered
 
-24 bitcoinfuzz targets map to ~35 entropylab-wasm exports. Three additional exports (`el_bech32m_encode`, `el_bech32m_decode`, `el_tx_parse`) are covered transitively — they are thin wrappers around the same code paths already exercised by `bech32_roundtrip` and `transaction_eval`. The remaining ~11 exports are intentionally omitted (deterministic hashes, trivial range checks, and pure wordlist lookups with no differential-fuzz value).
+24 bitcoinfuzz targets map to ~35 entropylab-wasm exports. `el_tx_parse` is exercised directly by `transaction_eval`. `el_bech32m_encode` and `el_bech32m_decode` are thin wrappers around the same `bech32` crate paths used by `bech32_roundtrip` and `address_parse`. The remaining ~11 exports are intentionally omitted (deterministic hashes, trivial range checks, and pure wordlist lookups with no differential-fuzz value).
 
 | # | bitcoinfuzz target | entropylab-wasm export | JS facade | Status |
 |---|-------------------|------------------------|-----------|--------|
@@ -21,7 +21,7 @@ This document tracks the complete mapping between `entropylab-wasm` exports and
 | 10 | `point_mul` | `secp_point_mul` | `secp256k1.js` | ✅ |
 | 11 | `descriptor_parse` | `el_desc_derive` | `core-importdescriptors.js` | ✅ |
 | 12 | `miniscript_parse` | `miniscript::Miniscript::from_str` | `core-importdescriptors.js` | ✅ |
-| 13 | `transaction_eval` | `el_tx_eval` | `tx.js` | ✅ |
+| 13 | `transaction_eval` | `el_tx_parse` | `tx.js` | ✅ |
 | 14 | `sighash_compute` | `el_sighash_segwit_v0` | `tx.js` | ✅ |
 | 15 | `address_parse` | `bech32::decode` + `el_b58check_decode` | `addresses.js` | ✅ |
 | 16 | `bech32_roundtrip` | `bech32::encode` + `bech32::decode` | `bech32.js` | ✅ |
