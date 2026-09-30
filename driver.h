@@ -83,5 +83,6 @@ public:
   void Bip39ValidateTarget(std::span<const uint8_t> buffer) const;
   void AezeedDecipherTarget(std::span<const uint8_t> buffer) const;
   void ScryptKdfTarget(std::span<const uint8_t> buffer) const;
+  void ScriptBuildRoundtripTarget(std::span<const uint8_t> buffer) const;
 };
 } // namespace bitcoinfuzz

@@ -1360,6 +1360,13 @@ void Driver::ScryptKdfTarget(std::span<const uint8_t> buffer) const {
   }
 }
 
+void Driver::ScriptBuildRoundtripTarget(std::span<const uint8_t> buffer) const {
+  // Module-specific smoke-test target: no differential comparison.
+  for (auto &module : modules) {
+    module.second->script_build_roundtrip(buffer);
+  }
+}
+
 void Driver::Bech32RoundtripTarget(std::span<const uint8_t> buffer) const {
   FuzzedDataProvider provider(buffer.data(), buffer.size());
 
@@ -1542,6 +1549,8 @@ void Driver::Run(const uint8_t *data, const size_t size,
     this->AezeedDecipherTarget(buffer);
   } else if (target == "scrypt_kdf") {
     this->ScryptKdfTarget(buffer);
+  } else if (target == "script_build_roundtrip") {
+    this->ScriptBuildRoundtripTarget(buffer);
   } else {
     std::cout << "Unknown target: " << target << std::endl;
     assert(false);

@@ -272,6 +272,13 @@ public:
   scrypt_kdf(std::span<const uint8_t> password, std::span<const uint8_t> salt,
              uint32_t log_n, uint32_t r, uint32_t p, size_t out_len) const;
 
+  // Smoke-test target exercising all 10 entropylab script/address builders:
+  // P2PKH, P2WPKH, P2SH-P2WPKH, P2TR-key, P2TR-leaf, P2SH, P2WSH,
+  // multisig, taproot-multisig, and addr_from_script. Returns a structured
+  // string like "P2PKH:<hex>|ADDR:<addr>;P2WPKH:..." or "ERR" on failure.
+  virtual std::optional<std::string>
+  script_build_roundtrip(std::span<const uint8_t> buffer) const;
+
   virtual ~BaseModule() noexcept;
 };
 } // namespace bitcoinfuzz

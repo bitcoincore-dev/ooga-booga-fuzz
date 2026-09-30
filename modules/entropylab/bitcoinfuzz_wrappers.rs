@@ -634,3 +634,108 @@ pub unsafe extern "C" fn entropylab_scrypt_kdf(
     }
     el_scrypt(pass, pass_len, salt, salt_len, log_n, r, p, out, out_len)
 }
+
+// ── script_build_roundtrip helpers ───────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_spk_p2pkh(
+    pubkey: *const u8,
+    pubkey_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    el_spk_p2pkh(pubkey, pubkey_len, out, cap)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_spk_p2wpkh(
+    pubkey: *const u8,
+    pubkey_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    el_spk_p2wpkh(pubkey, pubkey_len, out, cap)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_spk_p2sh_p2wpkh(
+    pubkey: *const u8,
+    pubkey_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    el_spk_p2sh_p2wpkh(pubkey, pubkey_len, out, cap)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_spk_p2tr_key(
+    internal: *const u8,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    el_spk_p2tr_key(internal, out, cap)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_spk_p2tr_leaf(
+    internal: *const u8,
+    leaf: *const u8,
+    leaf_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    el_spk_p2tr_leaf(internal, leaf, leaf_len, out, cap)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_spk_p2sh(
+    script: *const u8,
+    script_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    el_spk_p2sh(script, script_len, out, cap)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_spk_p2wsh(
+    script: *const u8,
+    script_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    el_spk_p2wsh(script, script_len, out, cap)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_script_multisig(
+    m: u32,
+    pubs: *const u8,
+    pubs_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    el_script_multisig(m, pubs, pubs_len, out, cap)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_script_multisig_tr(
+    m: u32,
+    pubs: *const u8,
+    pubs_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    el_script_multisig_tr(m, pubs, pubs_len, out, cap)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_addr_from_script(
+    script: *const u8,
+    script_len: usize,
+    net_sel: u8,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    el_addr_from_script(script, script_len, net_sel, out, cap)
+}

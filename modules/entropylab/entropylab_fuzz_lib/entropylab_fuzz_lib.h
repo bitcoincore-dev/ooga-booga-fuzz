@@ -51,3 +51,31 @@ extern "C" int entropylab_scrypt_kdf(const uint8_t *pass, size_t pass_len,
                                      uint32_t log_n, uint32_t r, uint32_t p,
                                      size_t out_len, uint8_t *out, size_t cap);
 extern "C" void entropylab_free_c_string(char *ptr);
+
+// ── script_build_roundtrip helpers ───────────────────────────────────────────
+
+extern "C" int entropylab_spk_p2pkh(const uint8_t *pubkey, size_t pubkey_len,
+                                    uint8_t *out, size_t cap);
+extern "C" int entropylab_spk_p2wpkh(const uint8_t *pubkey, size_t pubkey_len,
+                                     uint8_t *out, size_t cap);
+extern "C" int entropylab_spk_p2sh_p2wpkh(const uint8_t *pubkey,
+                                          size_t pubkey_len, uint8_t *out,
+                                          size_t cap);
+extern "C" int entropylab_spk_p2tr_key(const uint8_t *internal, uint8_t *out,
+                                       size_t cap);
+extern "C" int entropylab_spk_p2tr_leaf(const uint8_t *internal,
+                                        const uint8_t *leaf, size_t leaf_len,
+                                        uint8_t *out, size_t cap);
+extern "C" int entropylab_spk_p2sh(const uint8_t *script, size_t script_len,
+                                   uint8_t *out, size_t cap);
+extern "C" int entropylab_spk_p2wsh(const uint8_t *script, size_t script_len,
+                                    uint8_t *out, size_t cap);
+extern "C" int entropylab_script_multisig(uint32_t m, const uint8_t *pubs,
+                                          size_t pubs_len, uint8_t *out,
+                                          size_t cap);
+extern "C" int entropylab_script_multisig_tr(uint32_t m, const uint8_t *pubs,
+                                             size_t pubs_len, uint8_t *out,
+                                             size_t cap);
+extern "C" int entropylab_addr_from_script(const uint8_t *script,
+                                           size_t script_len, uint8_t net_sel,
+                                           uint8_t *out, size_t cap);

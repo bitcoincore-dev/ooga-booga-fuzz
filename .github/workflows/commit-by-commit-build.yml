@@ -21,6 +21,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Configure git auth for fetch
+        run: |
+          if [ -n "$GITHUB_TOKEN" ]; then
+            git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          fi
+
       - name: Get commits in PR
         id: get-commits
         run: |
@@ -85,6 +91,12 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
+
+      - name: Configure git auth for fetch
+        run: |
+          if [ -n "$GITHUB_TOKEN" ]; then
+            git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          fi
 
       - name: Checkout specific commit
         run: |

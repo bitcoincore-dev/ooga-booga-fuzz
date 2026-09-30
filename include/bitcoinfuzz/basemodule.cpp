@@ -269,4 +269,9 @@ BaseModule::scrypt_kdf(std::span<const uint8_t> /*password*/,
   return std::nullopt;
 }
 
+std::optional<std::string>
+BaseModule::script_build_roundtrip(std::span<const uint8_t> /*buffer*/) const {
+  return std::nullopt;
+}
+
 } // namespace bitcoinfuzz

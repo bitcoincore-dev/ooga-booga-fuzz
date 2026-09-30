@@ -1,5 +1,6 @@
 #include "module.h"
 #include "entropylab_fuzz_lib/entropylab_fuzz_lib.h"
+#include <fuzzer/FuzzedDataProvider.h>
 
 namespace bitcoinfuzz {
 namespace module {
@@ -232,6 +233,95 @@ Entropylab::scrypt_kdf(std::span<const uint8_t> password,
     hex.push_back(kDigits[b & 0x0f]);
   }
   return hex;
+}
+
+std::optional<std::string>
+Entropylab::script_build_roundtrip(std::span<const uint8_t> buffer) const {
+  FuzzedDataProvider provider(buffer.data(), buffer.size());
+
+  auto pubkey = provider.ConsumeBytes<uint8_t>(33);
+  auto xonly = provider.ConsumeBytes<uint8_t>(32);
+
+  uint8_t net_sel = provider.ConsumeIntegral<uint8_t>();
+  uint8_t script_len = provider.ConsumeIntegralInRange<uint8_t>(0, 64);
+  uint8_t leaf_len = provider.ConsumeIntegralInRange<uint8_t>(0, 64);
+  uint8_t ms_n = provider.ConsumeIntegralInRange<uint8_t>(1, 16);
+  uint8_t ms_m = provider.ConsumeIntegralInRange<uint8_t>(1, 16);
+  uint8_t tr_ms_n = provider.ConsumeIntegralInRange<uint8_t>(1, 10);
+  uint8_t tr_ms_m = provider.ConsumeIntegralInRange<uint8_t>(1, 10);
+  uint8_t addr_script_len = provider.ConsumeIntegralInRange<uint8_t>(0, 64);
+
+  auto script = provider.ConsumeBytes<uint8_t>(script_len);
+  auto leaf = provider.ConsumeBytes<uint8_t>(leaf_len);
+  auto ms_pubs = provider.ConsumeBytes<uint8_t>(ms_n * 33);
+  auto tr_ms_pubs = provider.ConsumeBytes<uint8_t>(tr_ms_n * 32);
+  auto addr_script = provider.ConsumeBytes<uint8_t>(addr_script_len);
+
+  std::string result;
+  result.reserve(1024);
+  static constexpr char kDigits[] = "0123456789abcdef";
+  uint8_t out[256];
+  uint8_t addr_buf[128];
+
+  auto run_builder = [&](const char *label, int n) {
+    result += label;
+    result += ':';
+    if (n > 0) {
+      for (int i = 0; i < n; ++i) {
+        result.push_back(kDigits[out[i] >> 4]);
+        result.push_back(kDigits[out[i] & 0x0f]);
+      }
+    } else {
+      result += "ERR";
+    }
+    result += '|';
+    int addr_len =
+        entropylab_addr_from_script(out, std::max(n, 0), net_sel, addr_buf,
+                                    sizeof(addr_buf));
+    result += "ADDR:";
+    if (addr_len > 0) {
+      result.append(reinterpret_cast<const char *>(addr_buf), addr_len);
+    } else {
+      result += "ERR";
+    }
+    result += ';';
+  };
+
+  run_builder("P2PKH",
+              entropylab_spk_p2pkh(pubkey.data(), pubkey.size(), out,
+                                   sizeof(out)));
+  run_builder("P2WPKH",
+              entropylab_spk_p2wpkh(pubkey.data(), pubkey.size(), out,
+                                    sizeof(out)));
+  run_builder("P2SHWPKH",
+              entropylab_spk_p2sh_p2wpkh(pubkey.data(), pubkey.size(), out,
+                                         sizeof(out)));
+  run_builder("P2TRK", entropylab_spk_p2tr_key(xonly.data(), out, sizeof(out)));
+  run_builder("P2TRL", entropylab_spk_p2tr_leaf(xonly.data(), leaf.data(),
+                                                leaf.size(), out, sizeof(out)));
+  run_builder("P2SH", entropylab_spk_p2sh(script.data(), script.size(), out,
+                                          sizeof(out)));
+  run_builder("P2WSH", entropylab_spk_p2wsh(script.data(), script.size(), out,
+                                            sizeof(out)));
+  run_builder("MULTI", entropylab_script_multisig(ms_m, ms_pubs.data(),
+                                                  ms_pubs.size(), out,
+                                                  sizeof(out)));
+  run_builder("TRMUL", entropylab_script_multisig_tr(tr_ms_m, tr_ms_pubs.data(),
+                                                     tr_ms_pubs.size(), out,
+                                                     sizeof(out)));
+
+  // Standalone addr_from_script on its own input
+  int af_len = entropylab_addr_from_script(addr_script.data(), addr_script.size(),
+                                           net_sel, addr_buf, sizeof(addr_buf));
+  result += "AFSCR:";
+  if (af_len > 0) {
+    result.append(reinterpret_cast<const char *>(addr_buf), af_len);
+  } else {
+    result += "ERR";
+  }
+  result += ';';
+
+  return result;
 }
 
 } // namespace module
