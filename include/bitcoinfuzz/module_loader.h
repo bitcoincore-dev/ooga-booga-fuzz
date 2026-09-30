@@ -240,9 +240,19 @@ inline void LoadModules([[maybe_unused]] std::shared_ptr<Driver> driver,
     driver->LoadModule(std::shared_ptr<bitcoinfuzz::module::Class>(            \
         raw_ptr, [](bitcoinfuzz::module::Class *) {}));                        \
   }
+// Rust modules linked with -Z sanitizer=address can hit the same ASAN
+// bad-free on fork-child exit; leak them the same way.
+#define RUST_MODULE_ENTRY(Flag, Name, Class)                                   \
+  if (registry.isEnabled(Name)) {                                              \
+    auto *raw_ptr = new bitcoinfuzz::module::Class();                          \
+    BITCOINFUZZ_LSAN_IGNORE(raw_ptr);                                          \
+    driver->LoadModule(std::shared_ptr<bitcoinfuzz::module::Class>(            \
+        raw_ptr, [](bitcoinfuzz::module::Class *) {}));                        \
+  }
 #include "module_defs.h"
 #undef MODULE_ENTRY
 #undef CGO_MODULE_ENTRY
+#undef RUST_MODULE_ENTRY
 
 #ifdef CUSTOM_MUTATOR_BOLT11
   module_logger.addCustomMutator("BOLT11 Bech32 Custom Mutator");

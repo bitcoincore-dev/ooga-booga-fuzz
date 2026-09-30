@@ -13,8 +13,8 @@ jobs:
   get-commits:
     runs-on: ubuntu-latest
     outputs:
-      commits: ${{ steps.get-commits.outputs.commits }}
-      should_run: ${{ steps.get-commits.outputs.should_run }}
+      commits: ${{ steps.act-check.outputs.commits || steps.get-commits.outputs.commits }}
+      should_run: ${{ steps.act-check.outputs.should_run || steps.get-commits.outputs.should_run }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -29,8 +29,18 @@ jobs:
             git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
           fi
 
+      - name: Skip under act
+        id: act-check
+        run: |
+          if [ -n "$ACT" ]; then
+            echo "⏭️  Running under act — skipping commit-by-commit build"
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "commits=[]" >> $GITHUB_OUTPUT
+          fi
+
       - name: Get commits in PR
         id: get-commits
+        if: steps.act-check.outputs.should_run != 'false'
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             # Get the base branch

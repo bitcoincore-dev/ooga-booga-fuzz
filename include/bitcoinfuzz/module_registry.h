@@ -72,9 +72,11 @@ private:
     std::set<std::string> compiled;
 #define MODULE_ENTRY(Flag, Name, Class) compiled.insert(Name);
 #define CGO_MODULE_ENTRY(Flag, Name, Class) compiled.insert(Name);
+#define RUST_MODULE_ENTRY(Flag, Name, Class) compiled.insert(Name);
 #include "module_defs.h"
 #undef MODULE_ENTRY
 #undef CGO_MODULE_ENTRY
+#undef RUST_MODULE_ENTRY
     return compiled;
   }
 
