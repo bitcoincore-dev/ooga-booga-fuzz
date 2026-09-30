@@ -309,7 +309,7 @@ run-macos:
 
 _run-entropylab:
 	@echo "Building bitcoinfuzz with ENTROPYLAB module..."
-	@$(MAKE) clean >/dev/null 2>&1
+	@$(MAKE) clean CXXFLAGS="-DENTROPYLAB" >/dev/null 2>&1
 	@$(MAKE) bitcoinfuzz CXXFLAGS="-DENTROPYLAB"
 	@echo ""
 	@echo "=== Running all Entropylab fuzz targets ==="
