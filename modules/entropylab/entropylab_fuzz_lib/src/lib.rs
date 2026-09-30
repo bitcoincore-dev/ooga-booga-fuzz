@@ -1776,3 +1776,76 @@ pub unsafe extern "C" fn entropylab_private_to_public_key(
         std::ptr::null_mut()
     }
 }
+
+// ── sign_compact ────────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_sign_compact(
+    msg32: *const u8,
+    seckey: *const u8,
+) -> *mut c_char {
+    let mut out = [0u8; 64];
+    let result = secp_sign(msg32, seckey, std::ptr::null(), out.as_mut_ptr());
+    if result != 64 {
+        return std::ptr::null_mut();
+    }
+    let hex: String = out.iter().map(|b| format!("{:02x}", b)).collect();
+    str_to_c_string(&hex)
+}
+
+// ── sign_verify ─────────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_sign_verify(
+    msg32: *const u8,
+    seckey: *const u8,
+    sig64: *const u8,
+) -> i32 {
+    let mut pubkey = [0u8; 33];
+    if secp_pubkey_create(seckey, pubkey.as_mut_ptr(), 1) != 33 {
+        return 0;
+    }
+    secp_verify(msg32, pubkey.as_ptr(), 33, sig64)
+}
+
+// ── descriptor_parse ────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_descriptor_parse(
+    desc: *const u8,
+    desc_len: usize,
+) -> i32 {
+    let mut out = [0u8; 1];
+    let result = crate::descriptor::el_desc_derive(desc, desc_len, 0, 0, out.as_mut_ptr(), 1);
+    if result >= 0 {
+        1
+    } else {
+        0
+    }
+}
+
+// ── transaction_eval ────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_tx_eval(
+    input: *const u8,
+    input_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    let bytes = read(input, input_len);
+    let mut cursor: &[u8] = bytes;
+    let tx = match Transaction::consensus_decode_from_finite_reader(&mut cursor) {
+        Ok(tx) => tx,
+        Err(_) => return -1,
+    };
+    if !cursor.is_empty() {
+        return -2;
+    }
+    let result = format!("{}{}", tx.compute_wtxid(), tx.total_size());
+    if result.len() > cap {
+        return -3;
+    }
+    std::ptr::copy_nonoverlapping(result.as_ptr(), out, result.len());
+    result.len() as i32
+}

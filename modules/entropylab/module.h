@@ -22,6 +22,15 @@ public:
   pubkey_parse(std::span<const uint8_t> buffer) const override;
   std::optional<std::string>
   private_to_public_key(std::span<const uint8_t> buffer) const override;
+  std::optional<std::string>
+  sign_compact(std::span<const uint8_t> buffer,
+               std::span<const uint8_t> hash) const override;
+  std::optional<bool> sign_verify(std::span<const uint8_t> buffer,
+                                  std::span<const uint8_t> hash,
+                                  std::span<const uint8_t> sign) const override;
+  std::optional<bool> descriptor_parse(std::string str) const override;
+  std::optional<std::string>
+  transaction_eval(std::span<const uint8_t> buffer) const override;
   ~Entropylab() noexcept override = default;
 };
 

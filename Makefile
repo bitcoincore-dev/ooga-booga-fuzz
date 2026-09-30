@@ -313,7 +313,7 @@ _run-entropylab:
 	@$(MAKE) bitcoinfuzz CXXFLAGS="-DENTROPYLAB"
 	@echo ""
 	@echo "=== Running all Entropylab fuzz targets ==="
-	@for target in bip32_master_keygen bip32_deserialize_extended_key bip32_derive_from_path pubkey_parse private_to_public_key; do \
+	@for target in bip32_master_keygen bip32_deserialize_extended_key bip32_derive_from_path pubkey_parse private_to_public_key sign_compact sign_verify descriptor_parse transaction_eval; do \
 		echo ""; \
 		echo ">>> Fuzzing target: $$target <<<"; \
 		FUZZ=$$target ./bitcoinfuzz -max_total_time=$(or $(FUZZ_TIME),10); \

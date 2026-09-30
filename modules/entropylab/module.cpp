@@ -55,5 +55,39 @@ Entropylab::private_to_public_key(std::span<const uint8_t> buffer) const {
   return result;
 }
 
+std::optional<std::string>
+Entropylab::sign_compact(std::span<const uint8_t> buffer,
+                         std::span<const uint8_t> hash) const {
+  auto result_ptr = entropylab_sign_compact(hash.data(), buffer.data());
+  if (result_ptr == nullptr)
+    return std::nullopt;
+  std::string result(result_ptr);
+  entropylab_free_c_string(result_ptr);
+  return result;
+}
+
+std::optional<bool> Entropylab::sign_verify(std::span<const uint8_t> buffer,
+                                            std::span<const uint8_t> hash,
+                                            std::span<const uint8_t> sign) const {
+  if (sign.size() != 64)
+    return false;
+  return entropylab_sign_verify(hash.data(), buffer.data(), sign.data()) == 1;
+}
+
+std::optional<bool> Entropylab::descriptor_parse(std::string str) const {
+  return entropylab_descriptor_parse(
+             reinterpret_cast<const uint8_t *>(str.c_str()), str.size()) == 1;
+}
+
+std::optional<std::string>
+Entropylab::transaction_eval(std::span<const uint8_t> buffer) const {
+  std::vector<uint8_t> out(128);
+  int result =
+      entropylab_tx_eval(buffer.data(), buffer.size(), out.data(), out.size());
+  if (result < 0)
+    return "0";
+  return std::string(reinterpret_cast<const char *>(out.data()), result);
+}
+
 } // namespace module
 } // namespace bitcoinfuzz
