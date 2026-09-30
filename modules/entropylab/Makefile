@@ -33,7 +33,7 @@ cargo: $(RUST_LIB_PATH)
 
 module.a: module.o $(RUST_LIB_PATH)
 	bash ../../scripts/merge.sh module.a $(RUST_LIB_PATH) module.o
-	bash ../../scripts/rename_rust_secp_symbols.sh module.a $(SYMBOL_PREFIX) || true
+	bash ../../scripts/rename_rust_secp_symbols.sh module.a $(SYMBOL_PREFIX)
 	ranlib module.a
 
 module.o: module.cpp module.h

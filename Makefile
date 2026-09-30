@@ -10,6 +10,22 @@ HELPERS_OBJS := $(addprefix helpers/, $(addsuffix .o, $(HELPERS_SRC)))
 BITCOINFUZZ_DIR = $(shell pwd)
 CXXFLAGS += -DBITCOINFUZZ_DIR=\"$(BITCOINFUZZ_DIR)\"
 
+# macOS: Apple Clang does not ship libfuzzer. Auto-detect Homebrew LLVM.
+ifeq ($(UNAME_S), Darwin)
+	ifeq ($(origin CXX),default)
+		HOMEBREW_LLVM := $(wildcard /opt/homebrew/opt/llvm/bin/clang++)
+		ifeq ($(HOMEBREW_LLVM),)
+			HOMEBREW_LLVM := $(wildcard /usr/local/opt/llvm/bin/clang++)
+		endif
+		ifneq ($(HOMEBREW_LLVM),)
+			CXX := $(HOMEBREW_LLVM)
+		else
+			$(warning Apple Clang does not support -fsanitize=fuzzer. Run: make setup-macos)
+		endif
+	endif
+	LDFLAGS += -framework CoreFoundation
+endif
+
 # Conditionally include module.a files based on compilation flags
 MODULES :=
 ifneq ($(findstring -DBITCOIN_CORE,$(BASE_CXXFLAGS) $(CXXFLAGS)),)
@@ -163,10 +179,6 @@ ifneq ($(findstring -DENTROPYLAB,$(BASE_CXXFLAGS) $(CXXFLAGS)),)
 endif
 
 ifeq ($(UNAME_S), Darwin)
-	LDFLAGS = -framework CoreFoundation -Wl,-ld_classic
-endif
-
-ifeq ($(UNAME_S), Darwin)
 	LIB_EXT := dylib
 else
 	LIB_EXT := so
@@ -253,9 +265,26 @@ check-format-all:
 	done; \
 	exit $$EXIT_CODE
 
+setup-macos:
+	@echo "Installing Homebrew LLVM (required for -fsanitize=fuzzer on macOS)..."
+	brew install llvm
+	@echo ""
+	@echo "Homebrew LLVM installed. Build with:"
+	@echo "  make"
+	@echo "Or with specific modules:"
+	@echo "  CXXFLAGS=\"-DENTROPYLAB\" make"
+
+run-macos:
+	@if [ -z "$(FUZZ)" ]; then \
+		echo "Usage: FUZZ=<target> make run-macos"; \
+		echo "Example: FUZZ=bip32_master_keygen make run-macos"; \
+		exit 1; \
+	fi
+	./bitcoinfuzz
+
 clean:
 	rm -rf *.o module.a bitcoinfuzz include/bitcoinfuzz/*.o helpers/*.o $(MODULES)
 	rm -rf modules/eclair/eclair.zip modules/eclair/lib modules/eclair/eclair_extracted
 
 
-.PHONY: all bitcoinfuzz
+.PHONY: all bitcoinfuzz setup-macos run-macos

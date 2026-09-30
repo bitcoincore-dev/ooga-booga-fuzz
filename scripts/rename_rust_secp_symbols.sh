@@ -36,6 +36,10 @@ fi
 
 OBJCOPY="${OBJCOPY:-objcopy}"
 if ! command -v "$OBJCOPY" >/dev/null 2>&1; then
+    if [ "$(uname -s)" = "Darwin" ]; then
+        echo "No objcopy found on macOS; skipping secp256k1 symbol rename (two-level namespace avoids conflicts)." >&2
+        exit 0
+    fi
     echo "Error: $OBJCOPY not found. Install with: apt-get install binutils" >&2
     exit 1
 fi
