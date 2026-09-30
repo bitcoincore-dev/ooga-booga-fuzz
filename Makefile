@@ -1,4 +1,24 @@
-all: bitcoinfuzz
+all: help
+
+help:
+	@echo "bitcoinfuzz - Differential fuzzing of Bitcoin implementations"
+	@echo ""
+	@echo "Usage:"
+	@echo "  make bitcoinfuzz          Build the fuzzer binary"
+	@echo "  make help                 Show this help message"
+	@echo "  make clean                Remove build artifacts"
+	@echo "  make setup-macos          Install Homebrew LLVM (macOS only)"
+	@echo "  make run-macos            Run the fuzzer (requires FUZZ=target)"
+	@echo "  make run-entropylab       Run all Entropylab fuzz targets (auto-detects OS)"
+	@echo "  make run-macos-entropylab Run all Entropylab fuzz targets (macOS)"
+	@echo "  make format               Format C++ code"
+	@echo "  make check-format         Check C++ code formatting"
+	@echo ""
+	@echo "Examples:"
+	@echo "  CXXFLAGS=\"-DENTROPYLAB\" make bitcoinfuzz"
+	@echo "  FUZZ=bip32_master_keygen ./bitcoinfuzz"
+	@echo ""
+	@echo "For more info, see README.md and RUNNING.md"
 
 BASE_CXXFLAGS := -fsanitize=address,fuzzer -Wall -Wextra -std=c++20 -I include -I .
 UNAME_S := $(shell uname -s)
@@ -24,6 +44,7 @@ ifeq ($(UNAME_S), Darwin)
 		endif
 	endif
 	LDFLAGS += -framework CoreFoundation
+	export CXX
 endif
 
 # Conditionally include module.a files based on compilation flags
@@ -232,9 +253,13 @@ ifneq ($(findstring -DLIBBITCOIN_SYSTEM,$(BASE_CXXFLAGS) $(CXXFLAGS)),)
 	LIBBITCOIN_LDLIBS   := -L$(BOOST_ROOT)/lib -lboost_program_options
 endif
 
-CXXFLAGS := $(BASE_CXXFLAGS) $(JAVA_CXXFLAGS) $(CXXFLAGS) $(PYTHON_LDFLAGS) $(LIBBITCOIN_CXXFLAGS)
+override CXXFLAGS := $(BASE_CXXFLAGS) $(JAVA_CXXFLAGS) $(CXXFLAGS) $(PYTHON_LDFLAGS) $(LIBBITCOIN_CXXFLAGS)
 
-bitcoinfuzz: main.cpp driver.o $(BITCOINFUZZ_OBJS) $(JVM_LOADER)
+# Auto-build any module.a that is missing when linking the final binary.
+modules/%/module.a:
+	$(MAKE) -C $(dir $@)
+
+bitcoinfuzz: main.cpp driver.o $(BITCOINFUZZ_OBJS) $(JVM_LOADER) $(MODULES)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) main.cpp driver.o $(BITCOINFUZZ_OBJS) $(JVM_LOADER) $(MODULES) $(NBITCOIN_LIB) $(NLIGHTNING_LIB) $(NBITCOIN_SECP256K1_LIB) $(TINY_MINISCRIPT_LIB) -o bitcoinfuzz $(PYTHON_LDFLAGS) $(SODIUM_LDLIBS) $(LIBBITCOIN_LDLIBS)
 
 driver.o: driver.cpp driver.h
@@ -282,9 +307,30 @@ run-macos:
 	fi
 	./bitcoinfuzz
 
+_run-entropylab:
+	@echo "Building bitcoinfuzz with ENTROPYLAB module..."
+	@$(MAKE) clean >/dev/null 2>&1
+	@$(MAKE) bitcoinfuzz CXXFLAGS="-DENTROPYLAB"
+	@echo ""
+	@echo "=== Running all Entropylab fuzz targets ==="
+	@for target in bip32_master_keygen bip32_deserialize_extended_key bip32_derive_from_path pubkey_parse private_to_public_key; do \
+		echo ""; \
+		echo ">>> Fuzzing target: $$target <<<"; \
+		FUZZ=$$target ./bitcoinfuzz -max_total_time=$(or $(FUZZ_TIME),10); \
+	done
+
+run-macos-entropylab: _run-entropylab
+
+run-entropylab:
+ifeq ($(UNAME_S), Darwin)
+	$(MAKE) run-macos-entropylab
+else
+	$(MAKE) _run-entropylab
+endif
+
 clean:
 	rm -rf *.o module.a bitcoinfuzz include/bitcoinfuzz/*.o helpers/*.o $(MODULES)
 	rm -rf modules/eclair/eclair.zip modules/eclair/lib modules/eclair/eclair_extracted
 
 
-.PHONY: all bitcoinfuzz setup-macos run-macos
+.PHONY: all bitcoinfuzz setup-macos run-macos run-macos-entropylab run-entropylab _run-entropylab

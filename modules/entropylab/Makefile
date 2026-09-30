@@ -2,6 +2,24 @@ all: module.a
 
 CXXFLAGS += -Wall -Wextra -fsanitize=address,fuzzer -std=c++20 -I ../../include
 
+UNAME_S := $(shell uname -s)
+
+# macOS: Apple Clang does not ship libfuzzer. Auto-detect Homebrew LLVM.
+ifeq ($(UNAME_S), Darwin)
+	ifeq ($(origin CXX),default)
+		HOMEBREW_LLVM := $(wildcard /opt/homebrew/opt/llvm/bin/clang++)
+		ifeq ($(HOMEBREW_LLVM),)
+			HOMEBREW_LLVM := $(wildcard /usr/local/opt/llvm/bin/clang++)
+		endif
+		ifneq ($(HOMEBREW_LLVM),)
+			CXX := $(HOMEBREW_LLVM)
+		else
+			$(warning Apple Clang does not support -fsanitize=fuzzer. Run: brew install llvm)
+		endif
+	endif
+	export CXX
+endif
+
 CARGO_TARGET_DIR := $(shell pwd)/entropylab_fuzz_lib/target
 RUST_LIB_PATH := $(CARGO_TARGET_DIR)/release/libentropylab_fuzz_lib.a
 
