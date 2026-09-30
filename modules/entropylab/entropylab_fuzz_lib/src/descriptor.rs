@@ -18,9 +18,7 @@
 use crate::{ctx, read, wipe_string};
 use bitcoin::bip32::ChildNumber;
 use bitcoin::{Network, PublicKey as BtcPublicKey, ScriptBuf};
-use miniscript::descriptor::{
-    checksum, DescriptorPublicKey, DescriptorSecretKey, SinglePubKey, Wildcard,
-};
+use miniscript::descriptor::{checksum, DescriptorPublicKey, DescriptorSecretKey, SinglePubKey, Wildcard};
 use miniscript::{Descriptor, ForEachKey};
 use std::str::FromStr;
 
@@ -35,9 +33,7 @@ fn parse_key_expression(text: &str) -> Result<DescriptorPublicKey, String> {
         Ok(secret) => secret
             .to_public(ctx())
             .map_err(|_| "invalid key expression".to_string()),
-        Err(_) => {
-            DescriptorPublicKey::from_str(text).map_err(|_| "invalid key expression".to_string())
-        }
+        Err(_) => DescriptorPublicKey::from_str(text).map_err(|_| "invalid key expression".to_string()),
     }
 }
 
@@ -49,9 +45,7 @@ fn participant_public_key(key: &DescriptorPublicKey, index: u32) -> Result<[u8; 
         DescriptorPublicKey::Single(single) => match single.key {
             SinglePubKey::FullKey(pk) => {
                 if !pk.compressed {
-                    return Err(
-                        "uncompressed public keys cannot be taproot multisig participants".into(),
-                    );
+                    return Err("uncompressed public keys cannot be taproot multisig participants".into());
                 }
                 Ok(pk.inner.serialize())
             }
@@ -66,23 +60,21 @@ fn participant_public_key(key: &DescriptorPublicKey, index: u32) -> Result<[u8; 
         DescriptorPublicKey::XPub(xkey) => {
             let mut node = xkey.xkey;
             for step in xkey.derivation_path.as_ref() {
-                node = node.ckd_pub(ctx(), *step).map_err(|_| {
-                    "cannot derive a hardened step from an xpub participant".to_string()
-                })?;
+                node = node
+                    .ckd_pub(ctx(), *step)
+                    .map_err(|_| "cannot derive a hardened step from an xpub participant".to_string())?;
             }
             match xkey.wildcard {
                 Wildcard::None => {}
                 Wildcard::Unhardened => {
-                    let child = ChildNumber::from_normal_idx(index)
-                        .map_err(|_| "derivation index out of range".to_string())?;
+                    let child =
+                        ChildNumber::from_normal_idx(index).map_err(|_| "derivation index out of range".to_string())?;
                     node = node
                         .ckd_pub(ctx(), child)
                         .map_err(|_| "participant key derivation failed".to_string())?;
                 }
                 Wildcard::Hardened => {
-                    return Err(
-                        "a hardened wildcard cannot be derived from an xpub participant".into(),
-                    );
+                    return Err("a hardened wildcard cannot be derived from an xpub participant".into());
                 }
             }
             Ok(node.public_key.serialize())
@@ -128,33 +120,33 @@ fn split_top_level(args: &str) -> Vec<&str> {
 /// sh/wsh), so the keys are derived here, sorted as x-only bytes, and the
 /// expression rewritten to the multi_a it denotes.
 fn rewrite_sorted_multi_a(args: &str, index: u32) -> Result<String, String> {
-    let parts = split_top_level(args);
-    if parts.len() < 2 {
-        return Err("sortedmulti_a needs a threshold and at least one key".into());
-    }
-    let threshold = parts[0].trim();
-    if threshold.is_empty() || !threshold.bytes().all(|b| b.is_ascii_digit()) {
-        return Err("invalid sortedmulti_a threshold".into());
-    }
-    let mut keys: Vec<[u8; 32]> = Vec::new();
-    for arg in &parts[1..] {
-        if arg.is_empty() {
-            return Err("empty sortedmulti_a key".into());
-        }
-        let key = parse_key_expression(arg)?;
-        let plain = participant_public_key(&key, index)?;
-        let mut xonly = [0u8; 32];
-        xonly.copy_from_slice(&plain[1..]);
-        keys.push(xonly);
-    }
-    keys.sort();
-    let mut out = format!("multi_a({}", threshold);
-    for key in keys {
-        out.push(',');
-        out.push_str(&hex_lower(&key));
-    }
-    out.push(')');
-    Ok(out)
+  let parts = split_top_level(args);
+  if parts.len() < 2 {
+      return Err("sortedmulti_a needs a threshold and at least one key".into());
+  }
+  let threshold = parts[0].trim();
+  if threshold.is_empty() || !threshold.bytes().all(|b| b.is_ascii_digit()) {
+      return Err("invalid sortedmulti_a threshold".into());
+  }
+  let mut keys: Vec<[u8; 32]> = Vec::new();
+  for arg in &parts[1..] {
+      if arg.is_empty() {
+          return Err("empty sortedmulti_a key".into());
+      }
+      let key = parse_key_expression(arg)?;
+      let plain = participant_public_key(&key, index)?;
+      let mut xonly = [0u8; 32];
+      xonly.copy_from_slice(&plain[1..]);
+      keys.push(xonly);
+  }
+  keys.sort();
+  let mut out = format!("multi_a({}", threshold);
+  for key in keys {
+      out.push(',');
+      out.push_str(&hex_lower(&key));
+  }
+  out.push(')');
+  Ok(out)
 }
 
 /// Replaces every `sortedmulti_a(...)` in `body` with the multi_a it denotes
@@ -166,15 +158,9 @@ fn substitute_sorted_multi_a(body: &str, index: u32) -> Result<String, String> {
     let mut cursor = 0usize;
     while let Some(found) = out[cursor..].find("sortedmulti_a(") {
         let start = cursor + found;
-        let prev = if start == 0 {
-            None
-        } else {
-            Some(out.as_bytes()[start - 1])
-        };
+        let prev = if start == 0 { None } else { Some(out.as_bytes()[start - 1]) };
         if !matches!(prev, Some(b'(') | Some(b',') | Some(b'{') | Some(b':')) {
-            return Err(
-                "sortedmulti_a() can only appear where a miniscript fragment is expected".into(),
-            );
+            return Err("sortedmulti_a() can only appear where a miniscript fragment is expected".into());
         }
         let open = start + "sortedmulti_a".len();
         let bytes = out.as_bytes();
@@ -210,13 +196,10 @@ struct Derived {
 }
 
 fn derive_miniscript(body: &str, index: u32, network: Network) -> Result<Derived, String> {
-    let (descriptor, secrets) = Descriptor::parse_descriptor(ctx(), body)
-        .map_err(|e| format!("invalid descriptor: {}", e))?;
+    let (descriptor, secrets) = Descriptor::parse_descriptor(ctx(), body).map_err(|e| format!("invalid descriptor: {}", e))?;
     drop(secrets); // parsed xprv/WIF keys; only their public halves are used
     if descriptor.is_multipath() {
-        return Err(
-            "a multipath descriptor denotes several wallets; derive one branch at a time".into(),
-        );
+        return Err("a multipath descriptor denotes several wallets; derive one branch at a time".into());
     }
     let concrete = descriptor
         .derived_descriptor(ctx(), index)
@@ -345,12 +328,7 @@ mod tests {
     #[test]
     fn multisig_descriptors_derive_through_miniscript() {
         // BIP67-sorted 2-of-3 over three fixed test keys, each wrapped form.
-        let inner = format!(
-            "sortedmulti(2,{},{},{})",
-            VK[0].to_lowercase(),
-            VK[1].to_lowercase(),
-            VK[2].to_lowercase()
-        );
+        let inner = format!("sortedmulti(2,{},{},{})", VK[0].to_lowercase(), VK[1].to_lowercase(), VK[2].to_lowercase());
         for (wrapper, prefix) in [("sh", "a914"), ("wsh", "0020"), ("sh(wsh", "a914")] {
             let body = if wrapper == "sh(wsh" {
                 format!("sh(wsh({}))", inner)
@@ -358,34 +336,15 @@ mod tests {
                 format!("{}({})", wrapper, inner)
             };
             let derived = derive_descriptor(&body, 0, NET).expect("multisig derives");
-            assert!(
-                derived.script_pubkey.as_bytes().starts_with(&[0xa9, 0x14])
-                    == prefix.starts_with("a9")
-            );
+            assert!(derived.script_pubkey.as_bytes().starts_with(&[0xa9, 0x14]) == prefix.starts_with("a9"));
             assert!(derived.address.is_some());
             assert_eq!(derived.keys.len(), 3);
         }
         // sortedmulti is order-independent; multi preserves the listed order.
-        let reversed = format!(
-            "sortedmulti(2,{},{},{})",
-            VK[2].to_lowercase(),
-            VK[1].to_lowercase(),
-            VK[0].to_lowercase()
-        );
-        assert_eq!(
-            script_hex(&format!("wsh({})", inner), 0),
-            script_hex(&format!("wsh({})", reversed), 0)
-        );
-        let listed = format!(
-            "multi(2,{},{},{})",
-            VK[2].to_lowercase(),
-            VK[1].to_lowercase(),
-            VK[0].to_lowercase()
-        );
-        assert_ne!(
-            script_hex(&format!("wsh({})", inner), 0),
-            script_hex(&format!("wsh({})", listed), 0)
-        );
+        let reversed = format!("sortedmulti(2,{},{},{})", VK[2].to_lowercase(), VK[1].to_lowercase(), VK[0].to_lowercase());
+        assert_eq!(script_hex(&format!("wsh({})", inner), 0), script_hex(&format!("wsh({})", reversed), 0));
+        let listed = format!("multi(2,{},{},{})", VK[2].to_lowercase(), VK[1].to_lowercase(), VK[0].to_lowercase());
+        assert_ne!(script_hex(&format!("wsh({})", inner), 0), script_hex(&format!("wsh({})", listed), 0));
     }
 
     #[test]
@@ -425,10 +384,7 @@ mod tests {
         assert_eq!(signet.address.as_deref(), testnet.address.as_deref());
         let regtest = derive_descriptor(&desc, 0, Network::Regtest).expect("regtest derives");
         assert_eq!(regtest.script_pubkey, testnet.script_pubkey);
-        assert!(regtest
-            .address
-            .as_deref()
-            .is_some_and(|a| a.starts_with("bcrt1p")));
+        assert!(regtest.address.as_deref().is_some_and(|a| a.starts_with("bcrt1p")));
     }
 
     #[test]
