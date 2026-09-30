@@ -33,3 +33,6 @@
 	url = https://github.com/bitcoinfuzz/libbitcoin-system.git
 	ignore = all
 	branch = master
+[submodule "external/entropylab"]
+	path = external/entropylab
+	url = https://github.com/OogaBoogaX/entropylab.git
