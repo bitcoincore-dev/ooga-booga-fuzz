@@ -5,7 +5,7 @@ This document tracks the complete mapping between `entropylab-wasm` exports and
 
 ## Current state — all meaningful exports covered
 
-24 bitcoinfuzz targets map to ~35 entropylab-wasm exports. The remaining ~11 exports are intentionally omitted (deterministic hashes, trivial range checks, and pure wordlist lookups with no differential-fuzz value).
+24 bitcoinfuzz targets map to ~35 entropylab-wasm exports. Three additional exports (`el_bech32m_encode`, `el_bech32m_decode`, `el_tx_parse`) are covered transitively — they are thin wrappers around the same code paths already exercised by `bech32_roundtrip` and `transaction_eval`. The remaining ~11 exports are intentionally omitted (deterministic hashes, trivial range checks, and pure wordlist lookups with no differential-fuzz value).
 
 | # | bitcoinfuzz target | entropylab-wasm export | JS facade | Status |
 |---|-------------------|------------------------|-----------|--------|
@@ -70,6 +70,14 @@ This document tracks the complete mapping between `entropylab-wasm` exports and
 
 All 10 script/address builders and `addr_from_script` are exercised by `script_build_roundtrip`.
 
+### Transitively covered (same underlying implementation, different FFI entry point)
+
+| Export | Status | Notes |
+|--------|--------|-------|
+| `el_bech32m_encode` | ✅ | Same `bech32` crate path as `bech32_roundtrip`; thin wrapper |
+| `el_bech32m_decode` | ✅ | Same `bech32` crate path as `bech32_roundtrip` / `address_parse`; thin wrapper |
+| `el_tx_parse` | ✅ | Same `Transaction::consensus_decode_from_finite_reader` path as `transaction_eval` |
+
 ### Misc — ❌ intentionally omitted
 
 | Export | Status | Rationale |
@@ -87,9 +95,9 @@ All 10 script/address builders and `addr_from_script` are exercised by `script_b
 | `hdkey.js` | `el_hd_master`, `el_hd_ckd_priv`, `el_hd_ckd_pub`, `el_hd_validate` | `bip32_master_keygen`, `bip32_deserialize_extended_key`, `bip32_derive_from_path`, `hd_ckd_pub` | ~95 % |
 | `bip39.js` | `el_bip39_*` | `bip39_mnemonic_roundtrip`, `bip39_validate` | ~75 % |
 | `base58.js` | `el_b58check_*` | `base58_roundtrip` | ~90 % |
-| `bech32.js` | `el_bech32m_*` | `bech32_roundtrip`, `bech32_convert_bits` | ~95 % |
+| `bech32.js` | `el_bech32m_*` | `bech32_roundtrip`, `bech32_convert_bits` | ✅ 100 % |
 | `addresses.js` | `el_spk_*`, `el_script_*`, `el_addr_from_script` | `script_build_roundtrip`, `descriptor_parse`, `miniscript_parse`, `address_parse` | ~95 % |
-| `tx.js` | `el_tx_parse`, `el_sighash_segwit_v0` | `transaction_eval`, `sighash_compute` | ~90 % |
+| `tx.js` | `el_tx_parse`, `el_sighash_segwit_v0` | `transaction_eval`, `sighash_compute` | ✅ 100 % |
 | `aezeed.js` | `el_aezeed_decipher`, `el_scrypt` | `aezeed_decipher`, `scrypt_kdf` | ~90 % |
 | `core-importdescriptors.js` | `el_desc_derive` | `descriptor_parse`, `miniscript_parse` | ✅ 100 % |
 

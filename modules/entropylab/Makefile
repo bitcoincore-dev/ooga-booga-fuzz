@@ -76,7 +76,7 @@ module.o: module.cpp module.h
 format: sync-source
 	$(CLANG_FORMAT) -i ./module.cpp ./module.h ./entropylab_fuzz_lib/entropylab_fuzz_lib.h
 
-check-format: sync-source
+check-format:
 	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h ./entropylab_fuzz_lib/entropylab_fuzz_lib.h
 	cd entropylab_fuzz_lib && cargo fmt --check
 
