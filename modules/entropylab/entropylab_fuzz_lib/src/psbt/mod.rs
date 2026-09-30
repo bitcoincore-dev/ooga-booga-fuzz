@@ -203,7 +203,7 @@ pub(crate) fn hex_encode(bytes: &[u8]) -> String {
     out
 }
 
-fn hex_decode(text: &str) -> Result<Vec<u8>, String> {
+pub(crate) fn hex_decode(text: &str) -> Result<Vec<u8>, String> {
     let bytes = text.as_bytes();
     if bytes.len() % 2 != 0 {
         return Err("hex value has an odd number of digits".into());

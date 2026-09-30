@@ -28,8 +28,8 @@ use bitcoin::sighash::{Annex, EcdsaSighashType, Prevouts, SighashCache, TapSigha
 use bitcoin::taproot::{ControlBlock, LeafVersion, TapLeafHash};
 use bitcoin::{Amount, ScriptBuf, TapSighash, Transaction, TxOut, Witness};
 
-use crate::scriptcode;
-use crate::{hex_encode, pair_utxo_claim, tx_sanity_error, RawPair};
+use super::scriptcode;
+use super::{hex_encode, pair_utxo_claim, tx_sanity_error, RawPair};
 
 pub(crate) const ERROR: &str = "error";
 pub(crate) const WARNING: &str = "warning";
@@ -1336,7 +1336,7 @@ mod tests {
     use bitcoin::{OutPoint, Sequence, TxIn, Txid};
 
     fn hex(text: &str) -> Vec<u8> {
-        crate::hex_decode(text).unwrap()
+        super::hex_decode(text).unwrap()
     }
 
     fn pair(key: &str, value: &str) -> RawPair {

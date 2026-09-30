@@ -15,7 +15,7 @@
 //! rust-bitcoin's own parse verdict stays in `rustBitcoinError` and is not
 //! replaced.
 
-use crate::{hex_encode, pair_type_name, read_varint, RawPair};
+use super::{hex_encode, pair_type_name, read_varint, RawPair};
 use bitcoin::bip32::{ChildNumber, Xpub};
 use bitcoin::secp256k1::{PublicKey, Secp256k1, XOnlyPublicKey};
 use serde_json::{json, Value};
