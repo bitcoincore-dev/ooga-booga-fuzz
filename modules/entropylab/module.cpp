@@ -304,12 +304,16 @@ Entropylab::script_build_roundtrip(std::span<const uint8_t> buffer) const {
   append_hex("P2SHWPKH", n);
   append_addr(n);
 
-  n = entropylab_spk_p2tr_key(xonly.data(), out, sizeof(out));
+  n = xonly.size() == 32
+          ? entropylab_spk_p2tr_key(xonly.data(), out, sizeof(out))
+          : -1;
   append_hex("P2TRK", n);
   append_addr(n);
 
-  n = entropylab_spk_p2tr_leaf(xonly.data(), leaf.data(), leaf.size(), out,
-                               sizeof(out));
+  n = xonly.size() == 32
+          ? entropylab_spk_p2tr_leaf(xonly.data(), leaf.data(), leaf.size(),
+                                     out, sizeof(out))
+          : -1;
   append_hex("P2TRL", n);
   append_addr(n);
 
