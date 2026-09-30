@@ -360,9 +360,9 @@ clean:
 	rm -rf build/univalue || true
 
 format:
-	clang-format -i ./module.cpp ./module.h
+	$(CLANG_FORMAT) -i ./module.cpp ./module.h
 
 check-format:
-	clang-format -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h
+	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h
 
 .PHONY: clean all format check-format compile_objects

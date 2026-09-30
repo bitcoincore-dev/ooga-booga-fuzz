@@ -30,11 +30,11 @@ module.o: module.cpp module.h
 	$(CXX) $(CXXFLAGS) -I . -fPIC -c module.cpp -o module.o
 
 format:
-	clang-format -i module.h module.cpp NLightning/nlightning_lib.h
+	$(CLANG_FORMAT) -i module.h module.cpp NLightning/nlightning_lib.h
 	dotnet format
 
 check-format:
-	clang-format -Werror --fail-on-incomplete-format -n module.h module.cpp NLightning/nlightning_lib.h
+	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n module.h module.cpp NLightning/nlightning_lib.h
 	dotnet format --verify-no-changes
 
 clean:

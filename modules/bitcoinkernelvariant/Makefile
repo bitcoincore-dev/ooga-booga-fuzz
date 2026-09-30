@@ -119,10 +119,10 @@ module.o: module.cpp module.h \
 	$(CXX) $(CXXFLAGS) -I $(BITCOIN_DIR)/src -fPIC -c module.cpp -o module.o
 
 format:
-	clang-format -i module.h module.cpp
+	$(CLANG_FORMAT) -i module.h module.cpp
 
 check-format:
-	clang-format -Werror --fail-on-incomplete-format -n module.h module.cpp
+	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n module.h module.cpp
 
 clean:
 	rm -rf *.o module.a module_temp.a tmp_obj variant_symbols.map bitcoin/build-kernel

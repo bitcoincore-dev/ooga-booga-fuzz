@@ -47,11 +47,11 @@ module.o: module.cpp module.h
 	$(CXX) $(CXXFLAGS) -fPIC -c module.cpp -o module.o
 
 format:
-	clang-format -i ./module.cpp ./module.h
+	$(CLANG_FORMAT) -i ./module.cpp ./module.h
 	java -jar google-java-format.jar -i ./EclairWrapper.java
 
 check-format:
-	clang-format -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h
+	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h
 	java -jar google-java-format.jar --dry-run --set-exit-if-changed ./EclairWrapper.java
 
 clean:

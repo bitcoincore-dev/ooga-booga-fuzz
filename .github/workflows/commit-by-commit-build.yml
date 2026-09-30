@@ -11,6 +11,7 @@ on:
 
 jobs:
   get-commits:
+    if: env.ACT != 'true'
     runs-on: ubuntu-latest
     outputs:
       commits: ${{ steps.act-check.outputs.commits || steps.get-commits.outputs.commits }}
@@ -32,7 +33,7 @@ jobs:
       - name: Skip under act
         id: act-check
         run: |
-          if [ -n "$ACT" ]; then
+          if [ -n "$ACT" ] || [ -n "${{ env.ACT }}" ]; then
             echo "⏭️  Running under act — skipping commit-by-commit build"
             echo "should_run=false" >> $GITHUB_OUTPUT
             echo "commits=[]" >> $GITHUB_OUTPUT
@@ -92,11 +93,6 @@ jobs:
     needs: get-commits
     if: needs.get-commits.outputs.should_run == 'true'
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        commit: ${{ fromJson(needs.get-commits.outputs.commits) }}
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -109,19 +105,6 @@ jobs:
           if [ -n "$GITHUB_TOKEN" ]; then
             git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           fi
-
-      - name: Checkout specific commit
-        run: |
-          # Ensure we have the full history including the base branch
-          git fetch origin ${{ github.base_ref || github.event.repository.default_branch }}
-          git checkout ${{ matrix.commit }}
-          git submodule update --recursive
-
-      - name: Get commit info
-        id: commit-info
-        run: |
-          echo "short-sha=$(git rev-parse --short ${{ matrix.commit }})" >> $GITHUB_OUTPUT
-          echo "subject=$(git log -1 --pretty=format:'%s' ${{ matrix.commit }})" >> $GITHUB_OUTPUT
 
       - name: Checkout corpora repo
         uses: actions/checkout@v4
@@ -172,13 +155,30 @@ jobs:
           echo "CC=/usr/bin/clang" >> $GITHUB_ENV
           echo "CXX=/usr/bin/clang++" >> $GITHUB_ENV
 
-      - name: Build all modules
+      - name: Build all commits
         timeout-minutes: 60
         run: |
-          echo "Building commit ${{ steps.commit-info.outputs.short-sha }}: ${{ steps.commit-info.outputs.subject }}"
-          if [ -f "scripts/build-all.sh" ]; then
-            bash scripts/build-all.sh
-          else
-            echo "No build script found at this commit — skipping module builds"
-          fi
-          echo "✅ Successfully built commit ${{ steps.commit-info.outputs.short-sha }}: ${{ steps.commit-info.outputs.subject }}"
+          commits_json='${{ needs.get-commits.outputs.commits }}'
+          echo "Commits to build: $commits_json"
+
+          echo "$commits_json" | jq -r '.[]' | while read -r commit; do
+            [ -z "$commit" ] && continue
+
+            echo "========================================"
+            echo "Building commit $commit"
+            echo "========================================"
+
+            git checkout "$commit"
+            git submodule update --recursive
+
+            short_sha=$(git rev-parse --short "$commit")
+            subject=$(git log -1 --pretty=format:'%s' "$commit")
+            echo "Commit info: $short_sha - $subject"
+
+            if [ -f "scripts/build-all.sh" ]; then
+              bash scripts/build-all.sh
+              echo "✅ Successfully built commit $short_sha: $subject"
+            else
+              echo "No build script found at this commit — skipping module builds"
+            fi
+          done

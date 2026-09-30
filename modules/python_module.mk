@@ -14,11 +14,11 @@ module.o: module.cpp module.h
 	$(CXX) $(CXXFLAGS) $(PYTHON_CFLAGS) -I . -fPIC -c $< -o $@
 
 format:
-	clang-format -i ./module.cpp ./module.h
+	$(CLANG_FORMAT) -i ./module.cpp ./module.h
 	black ./$(MODULE_NAME)_lib.py
 
 check-format:
-	clang-format -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h
+	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h
 	black --check ./$(MODULE_NAME)_lib.py
 
 clean:

@@ -39,11 +39,11 @@ $(GJF):
 	curl -sSL -o $(GJF) $(GJF_URL)
 
 format: $(GJF)
-	clang-format -i module.h module.cpp
+	$(CLANG_FORMAT) -i module.h module.cpp
 	java -jar $(GJF) -i BitcoinSWrapper.java
 
 check-format: $(GJF)
-	clang-format -Werror --fail-on-incomplete-format -n module.h module.cpp
+	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n module.h module.cpp
 	java -jar $(GJF) --dry-run --set-exit-if-changed BitcoinSWrapper.java
 
 clean:

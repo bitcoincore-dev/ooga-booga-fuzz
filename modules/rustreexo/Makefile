@@ -25,11 +25,11 @@ module.o: module.cpp module.h
 	$(CXX) $(CXXFLAGS) -I . -fPIC -c module.cpp -o module.o
 
 format:
-	clang-format -i ./module.cpp ./module.h ./rustreexo_lib/rustreexo_lib.h
+	$(CLANG_FORMAT) -i ./module.cpp ./module.h ./rustreexo_lib/rustreexo_lib.h
 	cd rustreexo_lib && cargo fmt
 
 check-format:
-	clang-format -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h ./rustreexo_lib/rustreexo_lib.h
+	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h ./rustreexo_lib/rustreexo_lib.h
 	cd rustreexo_lib && cargo fmt --check
 
 clean:

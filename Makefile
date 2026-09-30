@@ -43,8 +43,20 @@ ifeq ($(UNAME_S), Darwin)
 			$(warning Apple Clang does not support -fsanitize=fuzzer. Run: make setup-macos)
 		endif
 	endif
+	ifeq ($(origin CLANG_FORMAT),undefined)
+		HOMEBREW_CLANG_FORMAT := $(wildcard /opt/homebrew/opt/llvm/bin/clang-format)
+		ifeq ($(HOMEBREW_CLANG_FORMAT),)
+			HOMEBREW_CLANG_FORMAT := $(wildcard /usr/local/opt/llvm/bin/clang-format)
+		endif
+		ifneq ($(HOMEBREW_CLANG_FORMAT),)
+			CLANG_FORMAT := $(HOMEBREW_CLANG_FORMAT)
+		else
+			CLANG_FORMAT := clang-format
+		endif
+	endif
 	LDFLAGS += -framework CoreFoundation
 	export CXX
+	export CLANG_FORMAT
 endif
 
 # Conditionally include module.a files based on compilation flags
@@ -272,14 +284,14 @@ helpers/%.o: helpers/%.cpp helpers/%.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 format:
-	clang-format -i include/bitcoinfuzz/*.h include/bitcoinfuzz/*.cpp driver.cpp driver.h main.cpp helpers/*.cpp helpers/*.h
+	$(CLANG_FORMAT) -i include/bitcoinfuzz/*.h include/bitcoinfuzz/*.cpp driver.cpp driver.h main.cpp helpers/*.cpp helpers/*.h
 
 format-all: format
 	$(MAKE) -C custommutator format
 	@for dir in modules/*/; do $(MAKE) -C $$dir format; done
 
 check-format:
-	clang-format -Werror --fail-on-incomplete-format -n include/bitcoinfuzz/*.h include/bitcoinfuzz/*.cpp driver.cpp driver.h main.cpp helpers/*.cpp helpers/*.h
+	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n include/bitcoinfuzz/*.h include/bitcoinfuzz/*.cpp driver.cpp driver.h main.cpp helpers/*.cpp helpers/*.h
 
 check-format-all:
 	@EXIT_CODE=0; \

@@ -102,10 +102,10 @@ module.a: $(LIBBITCOIN_LIB) $(SECP_STATIC_LIB) module.o secp256k1_symbols.map
 	ranlib module.a
 
 format:
-	clang-format -i ./module.cpp ./module.h
+	$(CLANG_FORMAT) -i ./module.cpp ./module.h
 
 check-format:
-	clang-format -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h
+	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h
 
 clean:
 	rm -f *.o *.a

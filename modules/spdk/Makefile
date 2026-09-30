@@ -38,11 +38,11 @@ module.o: module.cpp module.h
 	$(CXX) $(CXXFLAGS) -I . -fPIC -c module.cpp -o module.o
 
 format:
-	clang-format -i ./module.cpp ./module.h ./spdk_lib/spdk_lib.h
+	$(CLANG_FORMAT) -i ./module.cpp ./module.h ./spdk_lib/spdk_lib.h
 	cd spdk_lib && cargo fmt
 
 check-format:
-	clang-format -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h ./spdk_lib/spdk_lib.h
+	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h ./spdk_lib/spdk_lib.h
 	cd spdk_lib && cargo fmt --check
 
 clean:

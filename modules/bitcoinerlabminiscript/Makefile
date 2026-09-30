@@ -57,11 +57,11 @@ module.o: module.cpp module.h
 	$(CXX) $(CXXFLAGS) -fPIC -c module.cpp -o module.o
 
 format: $(NODE_MODULES_DIR)
-	clang-format -i ./module.cpp ./module.h
+	$(CLANG_FORMAT) -i ./module.cpp ./module.h
 	$(PRETTIER) $(TS_DIR)/src/index.ts --write --config $(TS_DIR)/.prettier.json
 
 check-format: $(NODE_MODULES_DIR)
-	clang-format -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h
+	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h
 	$(PRETTIER) $(TS_DIR)/src/index.ts --check --config $(TS_DIR)/.prettier.json
 
 clean:

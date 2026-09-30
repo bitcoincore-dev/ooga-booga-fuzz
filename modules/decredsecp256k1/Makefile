@@ -16,11 +16,11 @@ module.o: module.cpp
 	$(CXX) $(CXXFLAGS) -fPIC -c module.cpp -o module.o
 
 format:
-	clang-format -i ./module.cpp ./module.h
+	$(CLANG_FORMAT) -i ./module.cpp ./module.h
 	cd decredsecp256k1_wrapper && go fmt
 
 check-format:
-	clang-format -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h
+	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h
 	cd decredsecp256k1_wrapper && files=$$(gofmt -l .); if [ -n "$$files" ]; then echo "Unformatted files:"; echo "$$files"; exit 1; fi
 
 clean:

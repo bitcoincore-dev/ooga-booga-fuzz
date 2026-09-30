@@ -1,6 +1,6 @@
 all: module.a
 
-CXXFLAGS += -Wall -Wextra -fsanitize=address,fuzzer -std=c++20 -I ../../include
+override CXXFLAGS += -Wall -Wextra -fsanitize=address,fuzzer -std=c++20 -I ../../include
 
 UNAME_S := $(shell uname -s)
 
@@ -58,11 +58,11 @@ module.o: module.cpp module.h
 	$(CXX) $(CXXFLAGS) -I . -fPIC -c module.cpp -o module.o
 
 format:
-	clang-format -i ./module.cpp ./module.h ./entropylab_fuzz_lib/entropylab_fuzz_lib.h
+	$(CLANG_FORMAT) -i ./module.cpp ./module.h ./entropylab_fuzz_lib/entropylab_fuzz_lib.h
 	cd entropylab_fuzz_lib && cargo fmt
 
 check-format:
-	clang-format -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h ./entropylab_fuzz_lib/entropylab_fuzz_lib.h
+	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h ./entropylab_fuzz_lib/entropylab_fuzz_lib.h
 	cd entropylab_fuzz_lib && cargo fmt --check
 
 clean:

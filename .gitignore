@@ -27,3 +27,4 @@ docker-afl/
 
 # crash reports
 crash-*
+site/

@@ -31,11 +31,11 @@ module.o: module.cpp module.h
 	$(CXX) $(CXXFLAGS) -fPIC -c module.cpp -o module.o
 
 format:
-	clang-format -i module.h module.cpp
+	$(CLANG_FORMAT) -i module.h module.cpp
 	./gradlew ktlintFormat
 
 check-format:
-	clang-format -Werror --fail-on-incomplete-format -n module.h module.cpp
+	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n module.h module.cpp
 	./gradlew ktlintCheck
 
 clean:
