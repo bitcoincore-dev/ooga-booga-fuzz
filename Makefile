@@ -158,6 +158,10 @@ ifneq ($(findstring -DSPDK,$(BASE_CXXFLAGS) $(CXXFLAGS)),)
 	MODULES += modules/spdk/module.a
 endif
 
+ifneq ($(findstring -DENTROPYLAB,$(BASE_CXXFLAGS) $(CXXFLAGS)),)
+	MODULES += modules/entropylab/module.a
+endif
+
 ifeq ($(UNAME_S), Darwin)
 	LDFLAGS = -framework CoreFoundation -Wl,-ld_classic
 endif

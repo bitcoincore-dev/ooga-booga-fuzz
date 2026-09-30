@@ -173,6 +173,10 @@
 #include <modules/spdk/module.h>
 #endif
 
+#ifdef ENTROPYLAB
+#include <modules/entropylab/module.h>
+#endif
+
 #ifdef CUSTOM_MUTATOR_BOLT12_OFFER
 #include <custommutator/mutators/bolt12_offer.h>
 #endif

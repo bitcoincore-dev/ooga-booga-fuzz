@@ -148,6 +148,7 @@ contains the module-specific build commands, dependencies, and notes.
 | [bdk-sp](https://github.com/bitcoindevkit/bdk-sp) | `BDK_SP` | [modules/bdksp/README.md](./modules/bdksp/README.md) |
 | [BlueWallet SilentPayments](https://github.com/BlueWallet/SilentPayments) | `BLUEWALLET_SP` | [modules/bluewalletsp/README.md](./modules/bluewalletsp/README.md) |
 | [spdk](https://github.com/cygnet3/spdk) | `SPDK` | [modules/spdk/README.md](./modules/spdk/README.md) |
+| [Entropylab](https://github.com/OogaBoogaX/entropylab) | `ENTROPYLAB` | [modules/entropylab/README.md](./modules/entropylab/README.md) |
 
 ### Utreexo Modules
 
