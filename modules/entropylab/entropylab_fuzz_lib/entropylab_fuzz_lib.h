@@ -83,3 +83,9 @@ extern "C" int entropylab_bech32_convert_bits(const uint8_t *data,
                                               size_t data_len, uint8_t from_bits,
                                               uint8_t to_bits, int pad,
                                               uint8_t *out, size_t cap);
+extern "C" int entropylab_b58check_encode(const uint8_t *input,
+                                          size_t input_len, uint8_t *out,
+                                          size_t cap);
+extern "C" int entropylab_b58check_decode(const uint8_t *input,
+                                          size_t input_len, uint8_t *out,
+                                          size_t cap);

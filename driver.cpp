@@ -1367,6 +1367,18 @@ void Driver::ScriptBuildRoundtripTarget(std::span<const uint8_t> buffer) const {
   }
 }
 
+void Driver::Base58RoundtripTarget(std::span<const uint8_t> buffer) const {
+  std::optional<std::string> last_response{std::nullopt};
+  std::string last_module_name;
+  for (auto &module : modules) {
+    std::optional<std::string> res{module.second->base58_roundtrip(buffer)};
+    if (!res.has_value())
+      continue;
+    VerifyMatchingResponse(last_response, last_module_name, module.first, *res,
+                           "Base58 roundtrip failed");
+  }
+}
+
 void Driver::Bech32RoundtripTarget(std::span<const uint8_t> buffer) const {
   FuzzedDataProvider provider(buffer.data(), buffer.size());
 
@@ -1551,6 +1563,8 @@ void Driver::Run(const uint8_t *data, const size_t size,
     this->ScryptKdfTarget(buffer);
   } else if (target == "script_build_roundtrip") {
     this->ScriptBuildRoundtripTarget(buffer);
+  } else if (target == "base58_roundtrip") {
+    this->Base58RoundtripTarget(buffer);
   } else {
     std::cout << "Unknown target: " << target << std::endl;
     assert(false);

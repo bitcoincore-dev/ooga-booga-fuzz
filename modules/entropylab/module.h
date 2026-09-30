@@ -62,6 +62,8 @@ public:
   script_build_roundtrip(std::span<const uint8_t> buffer) const override;
   std::optional<std::string>
   bech32_convert_bits(const Bech32ConvertBitsInput &input) const override;
+  std::optional<std::string>
+  base58_roundtrip(std::span<const uint8_t> payload) const override;
   ~Entropylab() noexcept override = default;
 };
 

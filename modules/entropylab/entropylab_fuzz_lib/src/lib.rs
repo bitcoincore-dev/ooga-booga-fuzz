@@ -2303,6 +2303,28 @@ pub unsafe extern "C" fn entropylab_addr_from_script(
     el_addr_from_script(script, script_len, net_sel, out, cap)
 }
 
+// ── base58 roundtrip helpers ────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_b58check_encode(
+    input: *const u8,
+    input_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    el_b58check_encode(input, input_len, out, cap)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_b58check_decode(
+    input: *const u8,
+    input_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    el_b58check_decode(input, input_len, out, cap)
+}
+
 // ── bech32_convert_bits ─────────────────────────────────────────────────────
 
 fn hex_encode(bytes: &[u8]) -> String {

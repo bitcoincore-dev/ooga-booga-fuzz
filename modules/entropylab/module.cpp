@@ -87,7 +87,7 @@ Entropylab::transaction_eval(std::span<const uint8_t> buffer) const {
   int result =
       entropylab_tx_eval(buffer.data(), buffer.size(), out.data(), out.size());
   if (result < 0)
-    return "0";
+    return "TX_INVALID";
   return std::string(reinterpret_cast<const char *>(out.data()), result);
 }
 
@@ -357,6 +357,43 @@ Entropylab::bech32_convert_bits(const Bech32ConvertBitsInput &input) const {
   if (result < 0)
     return std::nullopt;
   return std::string(reinterpret_cast<const char *>(out.data()), result);
+}
+
+std::optional<std::string>
+Entropylab::base58_roundtrip(std::span<const uint8_t> payload) const {
+  std::vector<uint8_t> enc(512);
+  int enc_len = entropylab_b58check_encode(payload.data(), payload.size(),
+                                           enc.data(), enc.size());
+  if (enc_len < 0)
+    return "ENC:FAIL";
+
+  std::vector<uint8_t> dec(512);
+  int dec_len = entropylab_b58check_decode(enc.data(), enc_len, dec.data(),
+                                           dec.size());
+  if (dec_len < 0) {
+    return "ENC:" +
+           std::string(reinterpret_cast<const char *>(enc.data()), enc_len) +
+           "|DEC:FAIL";
+  }
+
+  if (dec_len != static_cast<int>(payload.size()) ||
+      std::memcmp(dec.data(), payload.data(), payload.size()) != 0) {
+    return "ENC:" +
+           std::string(reinterpret_cast<const char *>(enc.data()), enc_len) +
+           "|DEC:MISMATCH";
+  }
+
+  std::string hex;
+  hex.reserve(dec_len * 2);
+  static constexpr char kDigits[] = "0123456789abcdef";
+  for (int i = 0; i < dec_len; ++i) {
+    hex.push_back(kDigits[dec[i] >> 4]);
+    hex.push_back(kDigits[dec[i] & 0x0f]);
+  }
+
+  return "ENC:" +
+         std::string(reinterpret_cast<const char *>(enc.data()), enc_len) +
+         "|DEC:OK:" + hex;
 }
 
 } // namespace module

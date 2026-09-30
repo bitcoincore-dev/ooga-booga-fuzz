@@ -274,4 +274,9 @@ BaseModule::script_build_roundtrip(std::span<const uint8_t> /*buffer*/) const {
   return std::nullopt;
 }
 
+std::optional<std::string>
+BaseModule::base58_roundtrip(std::span<const uint8_t> /*payload*/) const {
+  return std::nullopt;
+}
+
 } // namespace bitcoinfuzz

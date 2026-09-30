@@ -278,6 +278,10 @@ public:
   // string like "P2PKH:<hex>|ADDR:<addr>;P2WPKH:..." or "ERR" on failure.
   virtual std::optional<std::string>
   script_build_roundtrip(std::span<const uint8_t> buffer) const;
+  // Base58Check encode → decode round-trip. Returns "ENC:<str>|DEC:OK:<hex>",
+  // "ENC:<str>|DEC:FAIL", or "ENC:FAIL".
+  virtual std::optional<std::string>
+  base58_roundtrip(std::span<const uint8_t> payload) const;
 
   virtual ~BaseModule() noexcept;
 };
