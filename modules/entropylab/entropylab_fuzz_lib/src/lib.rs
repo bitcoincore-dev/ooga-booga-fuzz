@@ -2542,20 +2542,6 @@ pub unsafe extern "C" fn entropylab_bech32_convert_bits(
     std::ptr::copy_nonoverlapping(result.as_ptr(), out, result.len());
     result.len() as i32
 }
-use std::ffi::CString;
-use std::os::raw::c_char;
-
-unsafe fn str_to_c_string(input: &str) -> *mut c_char {
-    CString::new(input).unwrap().into_raw()
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn psbt_fuzz_lib_free_c_string(ptr: *mut c_char) {
-    if !ptr.is_null() {
-        let _ = CString::from_raw(ptr);
-    }
-}
-
 fn get_last_error() -> String {
     unsafe {
         let len = crate::psbt::psbt_last_error(std::ptr::null_mut(), 0);
