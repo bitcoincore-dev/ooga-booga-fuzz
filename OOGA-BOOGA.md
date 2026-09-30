@@ -3,7 +3,9 @@
 This document tracks the complete mapping between `entropylab-wasm` exports and
 `bitcoinfuzz` targets, with a roadmap to 100 % coverage.
 
-## Current state (24 / ~35 exports covered)
+## Current state — all meaningful exports covered
+
+24 bitcoinfuzz targets map to ~35 entropylab-wasm exports. The remaining ~11 exports are intentionally omitted (deterministic hashes, trivial range checks, and pure wordlist lookups with no differential-fuzz value).
 
 | # | bitcoinfuzz target | entropylab-wasm export | JS facade | Status |
 |---|-------------------|------------------------|-----------|--------|

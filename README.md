@@ -73,6 +73,7 @@ Available targets:
 
 **bech32 / BIP39 / aezeed**
 - `bech32_roundtrip`
+- `bech32_convert_bits`
 - `bip39_mnemonic_roundtrip`
 - `bip39_validate`
 - `aezeed_decipher`
@@ -82,8 +83,9 @@ Available targets:
 
 **macOS** — The root `Makefile` auto-detects Homebrew LLVM at
 `/opt/homebrew/opt/llvm/bin/clang++` (Apple Silicon) or
-`/usr/local/opt/llvm/bin/clang++` (Intel). The deprecated `-ld_classic` linker
-flag has been removed.
+`/usr/local/opt/llvm/bin/clang++` (Intel), and also auto-detects `clang-format`
+from the same installation for `make check-format`. The deprecated `-ld_classic`
+linker flag has been removed.
 
 **Linux** — Should work with the standard LLVM toolchain (`clang++`, `lld`,
 `compiler-rt`). No special setup required.
