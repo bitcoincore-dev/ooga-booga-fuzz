@@ -145,7 +145,11 @@ pub unsafe extern "C" fn secp_seckey_valid(seckey: *const u8) -> i32 {
 /// Public key for `seckey`, serialized into `out` (which must hold 65 bytes).
 /// Returns 33/65, or -1 if the key is invalid.
 #[no_mangle]
-pub unsafe extern "C" fn secp_pubkey_create(seckey: *const u8, out: *mut u8, compressed: i32) -> i32 {
+pub unsafe extern "C" fn secp_pubkey_create(
+    seckey: *const u8,
+    out: *mut u8,
+    compressed: i32,
+) -> i32 {
     let mut sk = match SecretKey::from_slice(read(seckey, 32)) {
         Ok(sk) => sk,
         Err(_) => return -1,
@@ -194,7 +198,10 @@ pub unsafe extern "C" fn secp_point_add(
     b_len: usize,
     out: *mut u8,
 ) -> i32 {
-    let (pa, pb) = match (PublicKey::from_slice(read(a, a_len)), PublicKey::from_slice(read(b, b_len))) {
+    let (pa, pb) = match (
+        PublicKey::from_slice(read(a, a_len)),
+        PublicKey::from_slice(read(b, b_len)),
+    ) {
         (Ok(pa), Ok(pb)) => (pa, pb),
         _ => return -1,
     };
@@ -521,7 +528,12 @@ pub unsafe extern "C" fn el_scrypt(
         None => return -1,
     };
     let mut key = vec![0u8; out_len];
-    let result = scrypt::scrypt(read(pass, pass_len), read(salt, salt_len), &params, &mut key);
+    let result = scrypt::scrypt(
+        read(pass, pass_len),
+        read(salt, salt_len),
+        &params,
+        &mut key,
+    );
     scrub_scrypt(log_n, r, p);
     if result.is_err() {
         wipe_bytes(&mut key);
@@ -632,7 +644,12 @@ pub unsafe extern "C" fn el_aezeed_decipher(
 /// Base58Check-encodes the payload, writing UTF-8 into `out` (capacity
 /// `cap`). Returns the string length, or -1 if `cap` is too small.
 #[no_mangle]
-pub unsafe extern "C" fn el_b58check_encode(input: *const u8, input_len: usize, out: *mut u8, cap: usize) -> i32 {
+pub unsafe extern "C" fn el_b58check_encode(
+    input: *const u8,
+    input_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
     // The payload can be a WIF or extended private key; the encoded string is
     // then secret too, so both the boundary buffer (el_free) and this
     // temporary copy are wiped.
@@ -651,7 +668,12 @@ pub unsafe extern "C" fn el_b58check_encode(input: *const u8, input_len: usize, 
 /// payload into `out` (capacity `cap`). Returns the payload length, or -1 on
 /// malformed input / bad checksum / small `cap`.
 #[no_mangle]
-pub unsafe extern "C" fn el_b58check_decode(input: *const u8, input_len: usize, out: *mut u8, cap: usize) -> i32 {
+pub unsafe extern "C" fn el_b58check_decode(
+    input: *const u8,
+    input_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
     let text = match std::str::from_utf8(read(input, input_len)) {
         Ok(text) => text,
         Err(_) => return -1,
@@ -855,7 +877,12 @@ use bip39::{Language, Mnemonic};
 /// UTF-8 into `out` (capacity `cap`). Returns the phrase length, or -1 on a
 /// bad entropy length or small `cap`.
 #[no_mangle]
-pub unsafe extern "C" fn el_bip39_entropy_to_mnemonic(entropy: *const u8, len: usize, out: *mut u8, cap: usize) -> i32 {
+pub unsafe extern "C" fn el_bip39_entropy_to_mnemonic(
+    entropy: *const u8,
+    len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
     let mnemonic = match Mnemonic::from_entropy_in(Language::English, read(entropy, len)) {
         Ok(mnemonic) => mnemonic,
         Err(_) => return -1,
@@ -875,7 +902,12 @@ pub unsafe extern "C" fn el_bip39_entropy_to_mnemonic(entropy: *const u8, len: u
 /// into `out` (capacity `cap`). Returns the entropy length, or -1 on unknown
 /// words, bad word count, or a checksum mismatch.
 #[no_mangle]
-pub unsafe extern "C" fn el_bip39_mnemonic_to_entropy(phrase: *const u8, len: usize, out: *mut u8, cap: usize) -> i32 {
+pub unsafe extern "C" fn el_bip39_mnemonic_to_entropy(
+    phrase: *const u8,
+    len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
     let text = match std::str::from_utf8(read(phrase, len)) {
         Ok(text) => text,
         Err(_) => return -1,
@@ -958,7 +990,12 @@ fn write_script(script: ScriptBuf, out: *mut u8, cap: usize) -> i32 {
 
 /// P2PKH scriptPubKey for a 33/65-byte public key. Returns 25 or -1.
 #[no_mangle]
-pub unsafe extern "C" fn el_spk_p2pkh(pubkey: *const u8, len: usize, out: *mut u8, cap: usize) -> i32 {
+pub unsafe extern "C" fn el_spk_p2pkh(
+    pubkey: *const u8,
+    len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
     let pk = match BtcPublicKey::from_slice(read(pubkey, len)) {
         Ok(pk) => pk,
         Err(_) => return -1,
@@ -970,7 +1007,12 @@ pub unsafe extern "C" fn el_spk_p2pkh(pubkey: *const u8, len: usize, out: *mut u
 /// -1 (uncompressed keys are rejected, as before; CompressedPublicKey would
 /// otherwise silently accept and normalize them).
 #[no_mangle]
-pub unsafe extern "C" fn el_spk_p2wpkh(pubkey: *const u8, len: usize, out: *mut u8, cap: usize) -> i32 {
+pub unsafe extern "C" fn el_spk_p2wpkh(
+    pubkey: *const u8,
+    len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
     if len != 33 {
         return -1;
     }
@@ -984,7 +1026,12 @@ pub unsafe extern "C" fn el_spk_p2wpkh(pubkey: *const u8, len: usize, out: *mut 
 /// P2SH-wrapped P2WPKH scriptPubKey for a 33-byte public key. Returns 23 or
 /// -1.
 #[no_mangle]
-pub unsafe extern "C" fn el_spk_p2sh_p2wpkh(pubkey: *const u8, len: usize, out: *mut u8, cap: usize) -> i32 {
+pub unsafe extern "C" fn el_spk_p2sh_p2wpkh(
+    pubkey: *const u8,
+    len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
     let inner = el_spk_p2wpkh;
     let mut buf = [0u8; 22];
     let n = inner(pubkey, len, buf.as_mut_ptr(), 22);
@@ -993,7 +1040,11 @@ pub unsafe extern "C" fn el_spk_p2sh_p2wpkh(pubkey: *const u8, len: usize, out: 
     }
     let redeem = ScriptBuf::from(buf.to_vec());
     let hash = hash160::Hash::hash(redeem.as_bytes()).to_byte_array();
-    write_script(ScriptBuf::new_p2sh(&bitcoin::ScriptHash::from_byte_array(hash)), out, cap)
+    write_script(
+        ScriptBuf::new_p2sh(&bitcoin::ScriptHash::from_byte_array(hash)),
+        out,
+        cap,
+    )
 }
 
 /// BIP86 P2TR scriptPubKey (key-path only, tweaked) for a 32-byte x-only
@@ -1010,37 +1061,69 @@ pub unsafe extern "C" fn el_spk_p2tr_key(internal: *const u8, out: *mut u8, cap:
 /// P2TR scriptPubKey with a single-leaf tapscript tree (the multisig taproot
 /// case). Returns 34 or -1.
 #[no_mangle]
-pub unsafe extern "C" fn el_spk_p2tr_leaf(internal: *const u8, leaf: *const u8, leaf_len: usize, out: *mut u8, cap: usize) -> i32 {
+pub unsafe extern "C" fn el_spk_p2tr_leaf(
+    internal: *const u8,
+    leaf: *const u8,
+    leaf_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
     let key = match XOnlyPublicKey::from_slice(read(internal, 32)) {
         Ok(key) => key,
         Err(_) => return -1,
     };
     let script = ScriptBuf::from(read(leaf, leaf_len).to_vec());
     // Single-leaf tree: the merkle root is the leaf hash itself.
-    let root = bitcoin::taproot::LeafNode::new_script(script, bitcoin::taproot::LeafVersion::TapScript).node_hash();
+    let root =
+        bitcoin::taproot::LeafNode::new_script(script, bitcoin::taproot::LeafVersion::TapScript)
+            .node_hash();
     let info = bitcoin::taproot::TaprootSpendInfo::new_key_spend(ctx(), key, Some(root));
     write_script(ScriptBuf::new_p2tr_tweaked(info.output_key()), out, cap)
 }
 
 /// P2SH scriptPubKey wrapping an arbitrary redeem script. Returns 23 or -1.
 #[no_mangle]
-pub unsafe extern "C" fn el_spk_p2sh(script: *const u8, len: usize, out: *mut u8, cap: usize) -> i32 {
+pub unsafe extern "C" fn el_spk_p2sh(
+    script: *const u8,
+    len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
     let hash = hash160::Hash::hash(read(script, len)).to_byte_array();
-    write_script(ScriptBuf::new_p2sh(&bitcoin::ScriptHash::from_byte_array(hash)), out, cap)
+    write_script(
+        ScriptBuf::new_p2sh(&bitcoin::ScriptHash::from_byte_array(hash)),
+        out,
+        cap,
+    )
 }
 
 /// P2WSH scriptPubKey for an arbitrary witness script. Returns 34 or -1.
 #[no_mangle]
-pub unsafe extern "C" fn el_spk_p2wsh(script: *const u8, len: usize, out: *mut u8, cap: usize) -> i32 {
+pub unsafe extern "C" fn el_spk_p2wsh(
+    script: *const u8,
+    len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
     let hash = sha256::Hash::hash(read(script, len)).to_byte_array();
-    write_script(ScriptBuf::new_p2wsh(&bitcoin::WScriptHash::from_byte_array(hash)), out, cap)
+    write_script(
+        ScriptBuf::new_p2wsh(&bitcoin::WScriptHash::from_byte_array(hash)),
+        out,
+        cap,
+    )
 }
 
 /// Bare multisig (BIP11-style) redeem script: OP_m <pk1>..<pkN> OP_N
 /// OP_CHECKMULTISIG over 33-byte public keys packed back to back. Returns the
 /// script length, or -1 unless 0 < m <= n <= 16 with valid keys.
 #[no_mangle]
-pub unsafe extern "C" fn el_script_multisig(m: u32, pubs: *const u8, pubs_len: usize, out: *mut u8, cap: usize) -> i32 {
+pub unsafe extern "C" fn el_script_multisig(
+    m: u32,
+    pubs: *const u8,
+    pubs_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
     if m == 0 || m > 16 || pubs_len == 0 || pubs_len % 33 != 0 {
         return -1;
     }
@@ -1061,7 +1144,9 @@ pub unsafe extern "C" fn el_script_multisig(m: u32, pubs: *const u8, pubs_len: u
         }
         builder = builder.push_slice(buf.as_push_bytes());
     }
-    builder = builder.push_int(n as i64).push_opcode(bitcoin::opcodes::all::OP_CHECKMULTISIG);
+    builder = builder
+        .push_int(n as i64)
+        .push_opcode(bitcoin::opcodes::all::OP_CHECKMULTISIG);
     write_script(builder.into_script(), out, cap)
 }
 
@@ -1070,7 +1155,13 @@ pub unsafe extern "C" fn el_script_multisig(m: u32, pubs: *const u8, pubs_len: u
 /// keys packed back to back. Returns the script length, or -1 unless
 /// 0 < m <= n <= 999 with valid keys.
 #[no_mangle]
-pub unsafe extern "C" fn el_script_multisig_tr(m: u32, pubs: *const u8, pubs_len: usize, out: *mut u8, cap: usize) -> i32 {
+pub unsafe extern "C" fn el_script_multisig_tr(
+    m: u32,
+    pubs: *const u8,
+    pubs_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
     if m == 0 || pubs_len == 0 || pubs_len % 32 != 0 {
         return -1;
     }
@@ -1096,7 +1187,9 @@ pub unsafe extern "C" fn el_script_multisig_tr(m: u32, pubs: *const u8, pubs_len
             bitcoin::opcodes::all::OP_CHECKSIGADD
         });
     }
-    builder = builder.push_int(m as i64).push_opcode(bitcoin::opcodes::all::OP_NUMEQUAL);
+    builder = builder
+        .push_int(m as i64)
+        .push_opcode(bitcoin::opcodes::all::OP_NUMEQUAL);
     write_script(builder.into_script(), out, cap)
 }
 
@@ -1105,7 +1198,13 @@ pub unsafe extern "C" fn el_script_multisig_tr(m: u32, pubs: *const u8, pubs_len
 /// Address.encode behavior. Returns the string length, or -1 for unknown
 /// script types (the caller falls back to showing the script hex).
 #[no_mangle]
-pub unsafe extern "C" fn el_addr_from_script(script: *const u8, len: usize, net_sel: u8, out: *mut u8, cap: usize) -> i32 {
+pub unsafe extern "C" fn el_addr_from_script(
+    script: *const u8,
+    len: usize,
+    net_sel: u8,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
     let network = match network_from_selector(net_sel) {
         Some(network) => network,
         None => return -1,
@@ -1235,7 +1334,12 @@ use bitcoin::consensus::Decodable;
 use bitcoin::Transaction;
 
 #[no_mangle]
-pub unsafe extern "C" fn el_tx_parse(input: *const u8, input_len: usize, out: *mut u8, cap: usize) -> i32 {
+pub unsafe extern "C" fn el_tx_parse(
+    input: *const u8,
+    input_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
     let bytes = read(input, input_len);
     let mut cursor: &[u8] = bytes;
     let tx = match Transaction::consensus_decode_from_finite_reader(&mut cursor) {
@@ -1261,7 +1365,11 @@ pub unsafe extern "C" fn el_tx_parse(input: *const u8, input_len: usize, out: *m
         // could under-allocate a decodable transaction — a witness can carry
         // many empty items at one wire byte each against four flat bytes —
         // and misreport it as truncated (issue #339).
-        return if size > i32::MAX as usize { -3 } else { size as i32 };
+        return if size > i32::MAX as usize {
+            -3
+        } else {
+            size as i32
+        };
     }
     if size > cap {
         return -3;
@@ -1398,7 +1506,15 @@ mod tests {
         let seed = aezeed_words_to_bytes(mnemonic);
         let mut out = [0u8; 19];
         let code = unsafe {
-            el_aezeed_decipher(seed.as_ptr(), pass.as_ptr(), pass.len(), log_n, 8, 1, out.as_mut_ptr())
+            el_aezeed_decipher(
+                seed.as_ptr(),
+                pass.as_ptr(),
+                pass.len(),
+                log_n,
+                8,
+                1,
+                out.as_mut_ptr(),
+            )
         };
         if code == 19 {
             Ok(out)
@@ -1481,7 +1597,15 @@ mod tests {
         seed[29..].copy_from_slice(&crc);
         let mut out = [0u8; 19];
         let code = unsafe {
-            el_aezeed_decipher(seed.as_ptr(), "aezeed".as_ptr(), 6, 4, 8, 1, out.as_mut_ptr())
+            el_aezeed_decipher(
+                seed.as_ptr(),
+                "aezeed".as_ptr(),
+                6,
+                4,
+                8,
+                1,
+                out.as_mut_ptr(),
+            )
         };
         assert_eq!(code, -2);
     }
@@ -1492,10 +1616,15 @@ mod tests {
         let mut out = [0u8; 64];
         let code = unsafe {
             el_scrypt(
-                "password".as_ptr(), 8,
-                "NaCl".as_ptr(), 4,
-                10, 8, 16,
-                out.as_mut_ptr(), 64,
+                "password".as_ptr(),
+                8,
+                "NaCl".as_ptr(),
+                4,
+                10,
+                8,
+                16,
+                out.as_mut_ptr(),
+                64,
             )
         };
         assert_eq!(code, 64);
@@ -1516,10 +1645,15 @@ mod tests {
         let mut out = [0u8; 32];
         let mut call = |log_n: u32, r: u32, p: u32| unsafe {
             el_scrypt(
-                "pass".as_ptr(), 4,
-                "salt".as_ptr(), 4,
-                log_n, r, p,
-                out.as_mut_ptr(), 32,
+                "pass".as_ptr(),
+                4,
+                "salt".as_ptr(),
+                4,
+                log_n,
+                r,
+                p,
+                out.as_mut_ptr(),
+                32,
             )
         };
         // Accepted: the production and test-vector shapes.
@@ -1548,7 +1682,15 @@ mod tests {
         );
         let mut out = [0u8; 19];
         let mut call = |log_n: u32, r: u32, p: u32| unsafe {
-            el_aezeed_decipher(seed.as_ptr(), "aezeed".as_ptr(), 6, log_n, r, p, out.as_mut_ptr())
+            el_aezeed_decipher(
+                seed.as_ptr(),
+                "aezeed".as_ptr(),
+                6,
+                log_n,
+                r,
+                p,
+                out.as_mut_ptr(),
+            )
         };
         assert_eq!(call(4, 8, 1), 19, "the weakened test-vector set deciphers");
         // Wrong parameters for this seed, but a legitimate set: AEZ auth
@@ -1713,9 +1855,9 @@ pub unsafe extern "C" fn entropylab_bip32_derive_from_path(
     }
 
     let seed: [u8; 32] = [
-        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e,
-        0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c,
-        0x1d, 0x1e, 0x1f, 0x20,
+        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+        0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e,
+        0x1f, 0x20,
     ];
 
     let mut master = [0u8; 78];
@@ -1728,7 +1870,8 @@ pub unsafe extern "C" fn entropylab_bip32_derive_from_path(
         let mut child = [0u8; 78];
         let result = el_hd_ckd_priv(current.as_ptr(), index, child.as_mut_ptr());
         if result == 1 {
-            let result2 = el_hd_ckd_priv(current.as_ptr(), index.wrapping_add(1), child.as_mut_ptr());
+            let result2 =
+                el_hd_ckd_priv(current.as_ptr(), index.wrapping_add(1), child.as_mut_ptr());
             if result2 != 78 {
                 wipe_bytes(&mut master);
                 return str_to_c_string("INVALID");
@@ -1811,10 +1954,7 @@ pub unsafe extern "C" fn entropylab_sign_verify(
 // ── descriptor_parse ────────────────────────────────────────────────────────
 
 #[no_mangle]
-pub unsafe extern "C" fn entropylab_descriptor_parse(
-    desc: *const u8,
-    desc_len: usize,
-) -> i32 {
+pub unsafe extern "C" fn entropylab_descriptor_parse(desc: *const u8, desc_len: usize) -> i32 {
     let mut out = [0u8; 1];
     let result = crate::descriptor::el_desc_derive(desc, desc_len, 0, 0, out.as_mut_ptr(), 1);
     if result >= 0 {
@@ -1853,10 +1993,7 @@ pub unsafe extern "C" fn entropylab_tx_eval(
 // ── sign_der ────────────────────────────────────────────────────────────────
 
 #[no_mangle]
-pub unsafe extern "C" fn entropylab_sign_der(
-    msg32: *const u8,
-    seckey: *const u8,
-) -> *mut c_char {
+pub unsafe extern "C" fn entropylab_sign_der(msg32: *const u8, seckey: *const u8) -> *mut c_char {
     let mut out64 = [0u8; 64];
     let result = secp_sign(msg32, seckey, std::ptr::null(), out64.as_mut_ptr());
     if result != 64 {
@@ -1874,10 +2011,7 @@ pub unsafe extern "C" fn entropylab_sign_der(
 // ── miniscript_parse ────────────────────────────────────────────────────────
 
 #[no_mangle]
-pub unsafe extern "C" fn entropylab_miniscript_parse(
-    body: *const u8,
-    body_len: usize,
-) -> i32 {
+pub unsafe extern "C" fn entropylab_miniscript_parse(body: *const u8, body_len: usize) -> i32 {
     let text = match std::str::from_utf8(read(body, body_len)) {
         Ok(t) => t,
         Err(_) => return 0,
@@ -1899,10 +2033,7 @@ pub unsafe extern "C" fn entropylab_miniscript_parse(
 // ── address_parse ───────────────────────────────────────────────────────────
 
 #[no_mangle]
-pub unsafe extern "C" fn entropylab_address_parse(
-    addr: *const u8,
-    addr_len: usize,
-) -> *mut c_char {
+pub unsafe extern "C" fn entropylab_address_parse(addr: *const u8, addr_len: usize) -> *mut c_char {
     let text = match std::str::from_utf8(read(addr, addr_len)) {
         Ok(t) => t,
         Err(_) => return str_to_c_string("INVALID"),
@@ -2023,10 +2154,7 @@ pub unsafe extern "C" fn entropylab_bech32_roundtrip(
 
     match bech32::decode(&encoded) {
         Ok((dec_hrp, dec_data)) => {
-            if dec_hrp.as_str() != hrp_text
-                || dec_data.len() != data.len()
-                || dec_data != data
-            {
+            if dec_hrp.as_str() != hrp_text || dec_data.len() != data.len() || dec_data != data {
                 let result = format!("ENC:{}|DEC:FAIL", encoded);
                 if result.len() > cap {
                     return -1;
@@ -2093,10 +2221,7 @@ pub unsafe extern "C" fn entropylab_point_mul(
 // ── hd_ckd_pub ──────────────────────────────────────────────────────────────
 
 #[no_mangle]
-pub unsafe extern "C" fn entropylab_hd_ckd_pub(
-    node: *const u8,
-    index: u32,
-) -> *mut c_char {
+pub unsafe extern "C" fn entropylab_hd_ckd_pub(node: *const u8, index: u32) -> *mut c_char {
     let mut buf = [0u8; 78];
     let result = el_hd_ckd_pub(node, index, buf.as_mut_ptr());
     if result == 1 {
@@ -2154,10 +2279,7 @@ pub unsafe extern "C" fn entropylab_bip39_mnemonic_roundtrip(
 // ── bip39_validate ──────────────────────────────────────────────────────────
 
 #[no_mangle]
-pub unsafe extern "C" fn entropylab_bip39_validate(
-    phrase: *const u8,
-    phrase_len: usize,
-) -> i32 {
+pub unsafe extern "C" fn entropylab_bip39_validate(phrase: *const u8, phrase_len: usize) -> i32 {
     el_bip39_validate(phrase, phrase_len)
 }
 

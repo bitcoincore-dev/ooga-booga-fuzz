@@ -278,8 +278,8 @@ Entropylab::script_build_roundtrip(std::span<const uint8_t> buffer) const {
 
   auto append_addr = [&](int n) {
     result += '|';
-    int len = entropylab_addr_from_script(
-        out, std::max(n, 0), net_sel, addr_buf, sizeof(addr_buf));
+    int len = entropylab_addr_from_script(out, std::max(n, 0), net_sel,
+                                          addr_buf, sizeof(addr_buf));
     result += "ADDR:";
     if (len > 0) {
       result.append(reinterpret_cast<const char *>(addr_buf), len);
@@ -368,8 +368,8 @@ Entropylab::base58_roundtrip(std::span<const uint8_t> payload) const {
     return "ENC:FAIL";
 
   std::vector<uint8_t> dec(512);
-  int dec_len = entropylab_b58check_decode(enc.data(), enc_len, dec.data(),
-                                           dec.size());
+  int dec_len =
+      entropylab_b58check_decode(enc.data(), enc_len, dec.data(), dec.size());
   if (dec_len < 0) {
     return "ENC:" +
            std::string(reinterpret_cast<const char *>(enc.data()), enc_len) +
