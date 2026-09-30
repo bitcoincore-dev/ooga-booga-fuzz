@@ -31,6 +31,29 @@ public:
   std::optional<bool> descriptor_parse(std::string str) const override;
   std::optional<std::string>
   transaction_eval(std::span<const uint8_t> buffer) const override;
+  std::optional<std::string>
+  sign_der(std::span<const uint8_t> buffer,
+           std::span<const uint8_t> hash) const override;
+  std::optional<bool> miniscript_parse(std::string str) const override;
+  std::optional<std::string> address_parse(std::string str) const override;
+  std::optional<std::string>
+  sighash_compute(const SighashComputeInput &input) const override;
+  std::optional<std::string>
+  bech32_segwit_roundtrip(const Bech32SegwitInput &input) const override;
+  std::optional<std::string>
+  point_add(std::span<const uint8_t> a,
+            std::span<const uint8_t> b) const override;
+  std::optional<std::string>
+  point_mul(std::span<const uint8_t> point,
+            std::span<const uint8_t> scalar) const override;
+  std::optional<std::string> hd_ckd_pub(std::span<const uint8_t> node,
+                                        uint32_t index) const override;
+  std::optional<std::string>
+  bip39_mnemonic_roundtrip(std::span<const uint8_t> entropy) const override;
+  std::optional<bool> bip39_validate(std::string mnemonic) const override;
+  std::optional<std::string>
+  aezeed_decipher(std::span<const uint8_t> seed33,
+                  std::string passphrase) const override;
   ~Entropylab() noexcept override = default;
 };
 

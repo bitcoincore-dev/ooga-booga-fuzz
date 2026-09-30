@@ -76,5 +76,11 @@ public:
   void SilentPaymentsCreateOutputsTarget(std::span<const uint8_t> buffer) const;
   void Bech32RoundtripTarget(std::span<const uint8_t> buffer) const;
   void Bech32ConvertBitsTarget(std::span<const uint8_t> buffer) const;
+  void PointAddTarget(std::span<const uint8_t> buffer) const;
+  void PointMulTarget(std::span<const uint8_t> buffer) const;
+  void HdCkdPubTarget(std::span<const uint8_t> buffer) const;
+  void Bip39MnemonicRoundtripTarget(std::span<const uint8_t> buffer) const;
+  void Bip39ValidateTarget(std::span<const uint8_t> buffer) const;
+  void AezeedDecipherTarget(std::span<const uint8_t> buffer) const;
 };
 } // namespace bitcoinfuzz

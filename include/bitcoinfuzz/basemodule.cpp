@@ -228,4 +228,37 @@ std::optional<std::string> BaseModule::bech32_convert_bits(
   return std::nullopt;
 }
 
+std::optional<std::string>
+BaseModule::point_add(std::span<const uint8_t> /*a*/,
+                      std::span<const uint8_t> /*b*/) const {
+  return std::nullopt;
+}
+
+std::optional<std::string>
+BaseModule::point_mul(std::span<const uint8_t> /*point*/,
+                      std::span<const uint8_t> /*scalar*/) const {
+  return std::nullopt;
+}
+
+std::optional<std::string>
+BaseModule::hd_ckd_pub(std::span<const uint8_t> /*node*/,
+                       uint32_t /*index*/) const {
+  return std::nullopt;
+}
+
+std::optional<std::string>
+BaseModule::bip39_mnemonic_roundtrip(std::span<const uint8_t> /*entropy*/) const {
+  return std::nullopt;
+}
+
+std::optional<bool> BaseModule::bip39_validate(std::string /*mnemonic*/) const {
+  return std::nullopt;
+}
+
+std::optional<std::string>
+BaseModule::aezeed_decipher(std::span<const uint8_t> /*seed33*/,
+                            std::string /*passphrase*/) const {
+  return std::nullopt;
+}
+
 } // namespace bitcoinfuzz

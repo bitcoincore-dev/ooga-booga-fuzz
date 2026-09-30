@@ -1849,3 +1849,330 @@ pub unsafe extern "C" fn entropylab_tx_eval(
     std::ptr::copy_nonoverlapping(result.as_ptr(), out, result.len());
     result.len() as i32
 }
+
+// ── sign_der ────────────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_sign_der(
+    msg32: *const u8,
+    seckey: *const u8,
+) -> *mut c_char {
+    let mut out64 = [0u8; 64];
+    let result = secp_sign(msg32, seckey, std::ptr::null(), out64.as_mut_ptr());
+    if result != 64 {
+        return std::ptr::null_mut();
+    }
+    let sig = match secp256k1::ecdsa::Signature::from_compact(&out64) {
+        Ok(sig) => sig,
+        Err(_) => return std::ptr::null_mut(),
+    };
+    let der = sig.serialize_der();
+    let hex: String = der.iter().map(|b| format!("{:02x}", b)).collect();
+    str_to_c_string(&hex)
+}
+
+// ── miniscript_parse ────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_miniscript_parse(
+    body: *const u8,
+    body_len: usize,
+) -> i32 {
+    let text = match std::str::from_utf8(read(body, body_len)) {
+        Ok(t) => t,
+        Err(_) => return 0,
+    };
+    if text == "1" || text == "0" {
+        return 0;
+    }
+    use miniscript::{Miniscript, Segwitv0, Tap};
+    use std::str::FromStr;
+    if Miniscript::<String, Segwitv0>::from_str(text).is_ok() {
+        return 1;
+    }
+    if Miniscript::<String, Tap>::from_str(text).is_ok() {
+        return 1;
+    }
+    0
+}
+
+// ── address_parse ───────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_address_parse(
+    addr: *const u8,
+    addr_len: usize,
+) -> *mut c_char {
+    let text = match std::str::from_utf8(read(addr, addr_len)) {
+        Ok(t) => t,
+        Err(_) => return str_to_c_string("INVALID"),
+    };
+
+    // Try bech32 / bech32m decode
+    match bech32::decode(text) {
+        Ok((hrp, data)) => {
+            if hrp.as_str() == "bc" && !data.is_empty() {
+                let witver = data[0];
+                let program = &data[1..];
+                let prefix = if witver == 0 && program.len() == 20 {
+                    "WPKH:"
+                } else if witver == 0 && program.len() == 32 {
+                    "WSH:"
+                } else if witver == 1 && program.len() == 32 {
+                    "TR:"
+                } else {
+                    let hex: String = program.iter().map(|b| format!("{:02x}", b)).collect();
+                    let result = format!("WITNESS_UNKNOWN:v{}:{}", witver, hex);
+                    return str_to_c_string(&result);
+                };
+                let result = format!("{}{}", prefix, text);
+                return str_to_c_string(&result);
+            }
+        }
+        Err(_) => {}
+    }
+
+    // Try base58
+    let mut b58_out = [0u8; 64];
+    let b58_res = el_b58check_decode(addr, addr_len, b58_out.as_mut_ptr(), b58_out.len());
+    if b58_res >= 0 {
+        let payload_len = b58_res as usize;
+        if payload_len >= 1 {
+            let version = b58_out[0];
+            let prefix = if version == 0x00 && payload_len == 21 {
+                "PKH:"
+            } else if version == 0x05 && payload_len == 21 {
+                "SH:"
+            } else {
+                return str_to_c_string("INVALID");
+            };
+            let result = format!("{}{}", prefix, text);
+            return str_to_c_string(&result);
+        }
+    }
+
+    str_to_c_string("INVALID")
+}
+
+// ── sighash_compute ─────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_sighash_compute(
+    tx_ptr: *const u8,
+    tx_len: usize,
+    index: u32,
+    script_code: *const u8,
+    sc_len: usize,
+    amount: u64,
+    out: *mut u8,
+) -> i32 {
+    el_sighash_segwit_v0(tx_ptr, tx_len, index, script_code, sc_len, amount, out)
+}
+
+// ── bech32_roundtrip ────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_bech32_roundtrip(
+    hrp: *const u8,
+    hrp_len: usize,
+    witver: u8,
+    program: *const u8,
+    program_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    let hrp_text = match std::str::from_utf8(read(hrp, hrp_len)) {
+        Ok(t) => t,
+        Err(_) => return -1,
+    };
+    let hrp = match bech32::Hrp::parse(hrp_text) {
+        Ok(h) => h,
+        Err(_) => return -1,
+    };
+
+    let prog = read(program, program_len);
+    let mut data = Vec::with_capacity(1 + prog.len());
+    data.push(witver);
+    data.extend_from_slice(prog);
+
+    let encoded = if witver == 0 {
+        match bech32::encode::<bech32::Bech32>(hrp, &data) {
+            Ok(s) => s,
+            Err(_) => {
+                let msg = b"ENC:FAIL";
+                if msg.len() > cap {
+                    return -1;
+                }
+                std::ptr::copy_nonoverlapping(msg.as_ptr(), out, msg.len());
+                return msg.len() as i32;
+            }
+        }
+    } else {
+        match bech32::encode::<bech32::Bech32m>(hrp, &data) {
+            Ok(s) => s,
+            Err(_) => {
+                let msg = b"ENC:FAIL";
+                if msg.len() > cap {
+                    return -1;
+                }
+                std::ptr::copy_nonoverlapping(msg.as_ptr(), out, msg.len());
+                return msg.len() as i32;
+            }
+        }
+    };
+
+    match bech32::decode(&encoded) {
+        Ok((dec_hrp, dec_data)) => {
+            if dec_hrp.as_str() != hrp_text
+                || dec_data.len() != data.len()
+                || dec_data != data
+            {
+                let result = format!("ENC:{}|DEC:FAIL", encoded);
+                if result.len() > cap {
+                    return -1;
+                }
+                std::ptr::copy_nonoverlapping(result.as_ptr(), out, result.len());
+                return result.len() as i32;
+            }
+            let dec_ver = dec_data[0];
+            let dec_prog = &dec_data[1..];
+            let hex: String = dec_prog.iter().map(|b| format!("{:02x}", b)).collect();
+            let result = format!("ENC:{}|DEC:v{}:{}", encoded, dec_ver, hex);
+            if result.len() > cap {
+                return -1;
+            }
+            std::ptr::copy_nonoverlapping(result.as_ptr(), out, result.len());
+            result.len() as i32
+        }
+        Err(_) => {
+            let result = format!("ENC:{}|DEC:FAIL", encoded);
+            if result.len() > cap {
+                return -1;
+            }
+            std::ptr::copy_nonoverlapping(result.as_ptr(), out, result.len());
+            result.len() as i32
+        }
+    }
+}
+
+// ── point_add ───────────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_point_add(
+    a: *const u8,
+    a_len: usize,
+    b: *const u8,
+    b_len: usize,
+) -> *mut c_char {
+    let mut buf = [0u8; 33];
+    let result = secp_point_add(a, a_len, b, b_len, buf.as_mut_ptr());
+    if result != 33 {
+        return std::ptr::null_mut();
+    }
+    let hex: String = buf.iter().map(|b| format!("{:02x}", b)).collect();
+    str_to_c_string(&hex)
+}
+
+// ── point_mul ───────────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_point_mul(
+    point: *const u8,
+    point_len: usize,
+    scalar: *const u8,
+) -> *mut c_char {
+    let mut buf = [0u8; 33];
+    let result = secp_point_mul(point, point_len, scalar, buf.as_mut_ptr(), 1);
+    if result != 33 {
+        return std::ptr::null_mut();
+    }
+    let hex: String = buf.iter().map(|b| format!("{:02x}", b)).collect();
+    str_to_c_string(&hex)
+}
+
+// ── hd_ckd_pub ──────────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_hd_ckd_pub(
+    node: *const u8,
+    index: u32,
+) -> *mut c_char {
+    let mut buf = [0u8; 78];
+    let result = el_hd_ckd_pub(node, index, buf.as_mut_ptr());
+    if result == 1 {
+        let result2 = el_hd_ckd_pub(node, index.wrapping_add(1), buf.as_mut_ptr());
+        if result2 != 78 {
+            return std::ptr::null_mut();
+        }
+    } else if result != 78 {
+        return std::ptr::null_mut();
+    }
+    let encoded = base58ck::encode_check(&buf);
+    str_to_c_string(&encoded)
+}
+
+// ── bip39_mnemonic_roundtrip ────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_bip39_mnemonic_roundtrip(
+    entropy: *const u8,
+    entropy_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    let mut phrase_buf = vec![0u8; 512];
+    let phrase_len = el_bip39_entropy_to_mnemonic(
+        entropy,
+        entropy_len,
+        phrase_buf.as_mut_ptr(),
+        phrase_buf.len(),
+    );
+    if phrase_len < 0 {
+        return -1;
+    }
+    let phrase_len = phrase_len as usize;
+
+    // Verify roundtrip: mnemonic -> entropy
+    let mut entropy_back = vec![0u8; 64];
+    let entropy_back_len = el_bip39_mnemonic_to_entropy(
+        phrase_buf.as_ptr(),
+        phrase_len,
+        entropy_back.as_mut_ptr(),
+        entropy_back.len(),
+    );
+    if entropy_back_len < 0 {
+        return -1;
+    }
+
+    if phrase_len > cap {
+        return -1;
+    }
+    std::ptr::copy_nonoverlapping(phrase_buf.as_ptr(), out, phrase_len);
+    phrase_len as i32
+}
+
+// ── bip39_validate ──────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_bip39_validate(
+    phrase: *const u8,
+    phrase_len: usize,
+) -> i32 {
+    el_bip39_validate(phrase, phrase_len)
+}
+
+// ── aezeed_decipher ─────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_aezeed_decipher(
+    seed33: *const u8,
+    pass: *const u8,
+    pass_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    if cap < 19 {
+        return -1;
+    }
+    el_aezeed_decipher(seed33, pass, pass_len, 15, 8, 1, out)
+}

@@ -1228,6 +1228,114 @@ void Driver::Bech32ConvertBitsTarget(std::span<const uint8_t> buffer) const {
   }
 }
 
+void Driver::PointAddTarget(std::span<const uint8_t> buffer) const {
+  FuzzedDataProvider provider(buffer.data(), buffer.size());
+  std::vector<uint8_t> a = provider.ConsumeBytes<uint8_t>(
+      provider.ConsumeIntegralInRange<size_t>(33, 65));
+  std::vector<uint8_t> b = provider.ConsumeBytes<uint8_t>(
+      provider.ConsumeIntegralInRange<size_t>(33, 65));
+  std::optional<std::string> last_response{std::nullopt};
+  std::string last_module_name;
+
+  for (auto &module : modules) {
+    std::optional<std::string> res{module.second->point_add(a, b)};
+    if (!res.has_value())
+      continue;
+
+    VerifyMatchingResponse(last_response, last_module_name, module.first, *res,
+                           "Point add failed");
+  }
+}
+
+void Driver::PointMulTarget(std::span<const uint8_t> buffer) const {
+  FuzzedDataProvider provider(buffer.data(), buffer.size());
+  std::vector<uint8_t> point = provider.ConsumeBytes<uint8_t>(
+      provider.ConsumeIntegralInRange<size_t>(33, 65));
+  std::vector<uint8_t> scalar = provider.ConsumeBytes<uint8_t>(32);
+  std::optional<std::string> last_response{std::nullopt};
+  std::string last_module_name;
+
+  for (auto &module : modules) {
+    std::optional<std::string> res{module.second->point_mul(point, scalar)};
+    if (!res.has_value())
+      continue;
+
+    VerifyMatchingResponse(last_response, last_module_name, module.first, *res,
+                           "Point mul failed");
+  }
+}
+
+void Driver::HdCkdPubTarget(std::span<const uint8_t> buffer) const {
+  FuzzedDataProvider provider(buffer.data(), buffer.size());
+  std::vector<uint8_t> node = provider.ConsumeBytes<uint8_t>(78);
+  uint32_t index = provider.ConsumeIntegral<uint32_t>();
+  if (node.size() != 78)
+    return;
+  std::optional<std::string> last_response{std::nullopt};
+  std::string last_module_name;
+
+  for (auto &module : modules) {
+    std::optional<std::string> res{module.second->hd_ckd_pub(node, index)};
+    if (!res.has_value())
+      continue;
+
+    VerifyMatchingResponse(last_response, last_module_name, module.first, *res,
+                           "HD public CKD failed");
+  }
+}
+
+void Driver::Bip39MnemonicRoundtripTarget(
+    std::span<const uint8_t> buffer) const {
+  std::optional<std::string> last_response{std::nullopt};
+  std::string last_module_name;
+
+  for (auto &module : modules) {
+    std::optional<std::string> res{
+        module.second->bip39_mnemonic_roundtrip(buffer)};
+    if (!res.has_value())
+      continue;
+
+    VerifyMatchingResponse(last_response, last_module_name, module.first, *res,
+                           "BIP39 mnemonic roundtrip failed");
+  }
+}
+
+void Driver::Bip39ValidateTarget(std::span<const uint8_t> buffer) const {
+  FuzzedDataProvider provider(buffer.data(), buffer.size());
+  std::string mnemonic{provider.ConsumeRemainingBytesAsString()};
+  std::optional<bool> last_response{std::nullopt};
+  std::string last_module_name;
+
+  for (auto &module : modules) {
+    std::optional<bool> res{module.second->bip39_validate(mnemonic)};
+    if (!res.has_value())
+      continue;
+
+    VerifyMatchingResponse(last_response, last_module_name, module.first, *res,
+                           "BIP39 validate failed");
+  }
+}
+
+void Driver::AezeedDecipherTarget(std::span<const uint8_t> buffer) const {
+  FuzzedDataProvider provider(buffer.data(), buffer.size());
+  std::vector<uint8_t> seed33 = provider.ConsumeBytes<uint8_t>(33);
+  std::string passphrase{provider.ConsumeRemainingBytesAsString()};
+  if (seed33.size() != 33)
+    return;
+  std::optional<std::string> last_response{std::nullopt};
+  std::string last_module_name;
+
+  for (auto &module : modules) {
+    std::optional<std::string> res{
+        module.second->aezeed_decipher(seed33, passphrase)};
+    if (!res.has_value())
+      continue;
+
+    VerifyMatchingResponse(last_response, last_module_name, module.first, *res,
+                           "aezeed decipher failed");
+  }
+}
+
 void Driver::Bech32RoundtripTarget(std::span<const uint8_t> buffer) const {
   FuzzedDataProvider provider(buffer.data(), buffer.size());
 
@@ -1396,6 +1504,18 @@ void Driver::Run(const uint8_t *data, const size_t size,
     this->Bech32RoundtripTarget(buffer);
   } else if (target == "bech32_convert_bits") {
     this->Bech32ConvertBitsTarget(buffer);
+  } else if (target == "point_add") {
+    this->PointAddTarget(buffer);
+  } else if (target == "point_mul") {
+    this->PointMulTarget(buffer);
+  } else if (target == "hd_ckd_pub") {
+    this->HdCkdPubTarget(buffer);
+  } else if (target == "bip39_mnemonic_roundtrip") {
+    this->Bip39MnemonicRoundtripTarget(buffer);
+  } else if (target == "bip39_validate") {
+    this->Bip39ValidateTarget(buffer);
+  } else if (target == "aezeed_decipher") {
+    this->AezeedDecipherTarget(buffer);
   } else {
     std::cout << "Unknown target: " << target << std::endl;
     assert(false);

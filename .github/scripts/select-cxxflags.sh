@@ -46,6 +46,7 @@ declare -A MODULE_FLAGS=(
   [pycoin]="-DPYCOIN"
   [pyhdwallet]="-DPYHDWALLET"
   [libbitcoinsystem]="-DLIBBITCOIN_SYSTEM"
+  [entropylab]="-DENTROPYLAB"
 )
 
 mapfile -t MODULES < <(
