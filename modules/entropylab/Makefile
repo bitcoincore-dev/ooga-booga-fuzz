@@ -8,6 +8,9 @@ UNAME_S := $(shell uname -s)
 ifeq ($(origin CLANG_FORMAT),undefined)
 	CLANG_FORMAT := clang-format
 endif
+ifeq ($(strip $(CLANG_FORMAT)),)
+	CLANG_FORMAT := clang-format
+endif
 
 # macOS: Apple Clang does not ship libfuzzer. Auto-detect Homebrew LLVM.
 ifeq ($(UNAME_S), Darwin)

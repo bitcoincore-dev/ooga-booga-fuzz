@@ -34,6 +34,9 @@ CXXFLAGS += -DBITCOINFUZZ_DIR=\"$(BITCOINFUZZ_DIR)\"
 ifeq ($(origin CLANG_FORMAT),undefined)
 	CLANG_FORMAT := clang-format
 endif
+ifeq ($(strip $(CLANG_FORMAT)),)
+	CLANG_FORMAT := clang-format
+endif
 export CLANG_FORMAT
 
 # macOS: Apple Clang does not ship libfuzzer. Auto-detect Homebrew LLVM.
