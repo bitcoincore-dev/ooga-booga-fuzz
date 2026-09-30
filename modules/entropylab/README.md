@@ -28,6 +28,7 @@ Differential-fuzzing module for [EntropyLab](https://github.com/OogaBoogaX/entro
 | `bip39_validate` | BIP39 mnemonic checksum validation |
 | `aezeed_decipher` | LND aezeed cipher-seed decipher |
 | `scrypt_kdf` | scrypt key derivation |
+| `base58_roundtrip` | Base58Check encode + decode round-trip |
 | `script_build_roundtrip` | Smoke-test of all script/address builders |
 
 `script_build_roundtrip` is a module-specific catch-all target that exercises every scriptPubKey builder and `addr_from_script` in one run. It does not participate in differential comparison — it is a smoke test to ensure the Rust exports do not panic on arbitrary input.

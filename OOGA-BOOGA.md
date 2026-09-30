@@ -3,7 +3,7 @@
 This document tracks the complete mapping between `entropylab-wasm` exports and
 `bitcoinfuzz` targets, with a roadmap to 100 % coverage.
 
-## Current state (23 / ~35 exports covered)
+## Current state (24 / ~35 exports covered)
 
 | # | bitcoinfuzz target | entropylab-wasm export | JS facade | Status |
 |---|-------------------|------------------------|-----------|--------|
@@ -30,6 +30,7 @@ This document tracks the complete mapping between `entropylab-wasm` exports and
 | 21 | `aezeed_decipher` | `el_aezeed_decipher` | `aezeed.js` | ✅ |
 | 22 | `scrypt_kdf` | `el_scrypt` | `aezeed.js` | ✅ |
 | 23 | `script_build_roundtrip` | `el_spk_*` + `el_script_*` + `el_addr_from_script` | `addresses.js` | ✅ |
+| 24 | `base58_roundtrip` | `el_b58check_encode` + `el_b58check_decode` | `base58.js` | ✅ |
 
 > **`script_build_roundtrip`** is a module-specific smoke-test target (no differential partner). It stitches together all 10 script/address builders plus `addr_from_script` in a single run. It catches panics and validates that every builder accepts/rejects fuzzer-generated input correctly, but it does not compare outputs across implementations.
 
@@ -56,12 +57,12 @@ This document tracks the complete mapping between `entropylab-wasm` exports and
 
 > These are well-tested in their upstream crates (`bitcoin_hashes`, `bip39`). Without a second implementation to compare against, fuzzing only verifies that the same code produces the same output.
 
-### Base58Check (`base58.js`) — 📝 planned
+### Base58Check (`base58.js`) — ✅ fully covered
 
 | Export | Status | Notes |
 |--------|--------|-------|
-| `el_b58check_encode` | 📝 | No standalone driver target; only exercised transitively via `bip32_deserialize_extended_key` decode path |
-| `el_b58check_decode` | 📝 | Could add a dedicated `base58_roundtrip` target (encode → decode → compare) |
+| `el_b58check_encode` | ✅ | Covered by `base58_roundtrip` |
+| `el_b58check_decode` | ✅ | Covered by `base58_roundtrip` |
 
 ### Scripts / Addresses (`addresses.js`) — ✅ fully covered
 
@@ -83,7 +84,7 @@ All 10 script/address builders and `addr_from_script` are exercised by `script_b
 | `hashes.js` | `el_sha256`, `el_sha512`, `el_hash160`, `el_ripemd160`, `el_hmac_sha512`, `el_pbkdf2_hmac_sha512` | *None yet* | 0 % |
 | `hdkey.js` | `el_hd_master`, `el_hd_ckd_priv`, `el_hd_ckd_pub`, `el_hd_validate` | `bip32_master_keygen`, `bip32_deserialize_extended_key`, `bip32_derive_from_path`, `hd_ckd_pub` | ~95 % |
 | `bip39.js` | `el_bip39_*` | `bip39_mnemonic_roundtrip`, `bip39_validate` | ~75 % |
-| `base58.js` | `el_b58check_*` | Used internally only | 0 % |
+| `base58.js` | `el_b58check_*` | `base58_roundtrip` | ~90 % |
 | `bech32.js` | `el_bech32m_*` | `bech32_roundtrip`, `bech32_convert_bits` | ~95 % |
 | `addresses.js` | `el_spk_*`, `el_script_*`, `el_addr_from_script` | `script_build_roundtrip`, `descriptor_parse`, `miniscript_parse`, `address_parse` | ~95 % |
 | `tx.js` | `el_tx_parse`, `el_sighash_segwit_v0` | `transaction_eval`, `sighash_compute` | ~90 % |
