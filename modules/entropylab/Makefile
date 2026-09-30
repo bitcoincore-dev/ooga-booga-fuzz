@@ -47,10 +47,24 @@ SYMBOL_PREFIX ?= entropylab
 sync-source:
 	rm -rf entropylab_fuzz_lib/src
 	mkdir -p entropylab_fuzz_lib/src/aez
+	mkdir -p entropylab_fuzz_lib/src/psbt
 	cp ../../external/entropylab/entropylab-wasm/src/lib.rs entropylab_fuzz_lib/src/lib.rs
 	cp ../../external/entropylab/entropylab-wasm/src/descriptor.rs entropylab_fuzz_lib/src/descriptor.rs
 	cp ../../external/entropylab/entropylab-wasm/src/aez/*.rs entropylab_fuzz_lib/src/aez/
+	cp ../../external/entropylab/psbt-wasm/src/lib.rs entropylab_fuzz_lib/src/psbt/mod.rs
+	cp ../../external/entropylab/psbt-wasm/src/verify.rs entropylab_fuzz_lib/src/psbt/verify.rs
+	cp ../../external/entropylab/psbt-wasm/src/scriptcode.rs entropylab_fuzz_lib/src/psbt/scriptcode.rs
+	cp ../../external/entropylab/psbt-wasm/src/sanitize.rs entropylab_fuzz_lib/src/psbt/sanitize.rs
+	# Patch upstream psbt-wasm imports for nested-module layout
+	sed -i.bak 's/use crate::{hex_encode, pair_type_name, read_varint, RawPair};/use super::{hex_encode, pair_type_name, read_varint, RawPair};/' entropylab_fuzz_lib/src/psbt/sanitize.rs
+	sed -i.bak 's/use crate::scriptcode;/use super::scriptcode;/' entropylab_fuzz_lib/src/psbt/verify.rs
+	sed -i.bak 's/use crate::{hex_encode, pair_utxo_claim, tx_sanity_error, RawPair};/use super::{hex_encode, pair_utxo_claim, tx_sanity_error, RawPair};/' entropylab_fuzz_lib/src/psbt/verify.rs
+	sed -i.bak 's/crate::hex_decode/super::hex_decode/g' entropylab_fuzz_lib/src/psbt/verify.rs
+	sed -i.bak 's/^fn hex_decode/pub(crate) fn hex_decode/' entropylab_fuzz_lib/src/psbt/mod.rs
+	rm -f entropylab_fuzz_lib/src/psbt/*.bak
+	echo 'mod psbt;' >> entropylab_fuzz_lib/src/lib.rs
 	cat bitcoinfuzz_wrappers.rs >> entropylab_fuzz_lib/src/lib.rs
+	cat psbt_bitcoinfuzz_wrappers.rs >> entropylab_fuzz_lib/src/lib.rs
 	cd entropylab_fuzz_lib && cargo fmt
 
 $(RUST_LIB_PATH): sync-source

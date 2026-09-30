@@ -64,6 +64,8 @@ public:
   bech32_convert_bits(const Bech32ConvertBitsInput &input) const override;
   std::optional<std::string>
   base58_roundtrip(std::span<const uint8_t> payload) const override;
+  std::optional<std::string>
+  psbt_parse(std::span<const uint8_t> buffer) const override;
   ~Entropylab() noexcept override = default;
 };
 

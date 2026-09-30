@@ -396,5 +396,15 @@ Entropylab::base58_roundtrip(std::span<const uint8_t> payload) const {
          "|DEC:OK:" + hex;
 }
 
+std::optional<std::string>
+Entropylab::psbt_parse(std::span<const uint8_t> buffer) const {
+  auto result_ptr = entropylab_psbt_parse(buffer.data(), buffer.size());
+  if (result_ptr == nullptr)
+    return std::nullopt;
+  std::string result(result_ptr);
+  entropylab_free_c_string(result_ptr);
+  return result;
+}
+
 } // namespace module
 } // namespace bitcoinfuzz
