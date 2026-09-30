@@ -25,6 +25,8 @@ jobs:
         run: |
           if [ -n "$GITHUB_TOKEN" ]; then
             git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          else
+            git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
           fi
 
       - name: Get commits in PR
