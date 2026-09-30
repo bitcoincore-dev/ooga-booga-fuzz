@@ -263,7 +263,7 @@ Entropylab::script_build_roundtrip(std::span<const uint8_t> buffer) const {
   uint8_t out[256];
   uint8_t addr_buf[128];
 
-  auto run_builder = [&](const char *label, int n) {
+  auto append_hex = [&](const char *label, int n) {
     result += label;
     result += ':';
     if (n > 0) {
@@ -274,48 +274,68 @@ Entropylab::script_build_roundtrip(std::span<const uint8_t> buffer) const {
     } else {
       result += "ERR";
     }
+  };
+
+  auto append_addr = [&](int n) {
     result += '|';
-    int addr_len =
-        entropylab_addr_from_script(out, std::max(n, 0), net_sel, addr_buf,
-                                    sizeof(addr_buf));
+    int len = entropylab_addr_from_script(
+        out, std::max(n, 0), net_sel, addr_buf, sizeof(addr_buf));
     result += "ADDR:";
-    if (addr_len > 0) {
-      result.append(reinterpret_cast<const char *>(addr_buf), addr_len);
+    if (len > 0) {
+      result.append(reinterpret_cast<const char *>(addr_buf), len);
     } else {
       result += "ERR";
     }
     result += ';';
   };
 
-  run_builder("P2PKH",
-              entropylab_spk_p2pkh(pubkey.data(), pubkey.size(), out,
-                                   sizeof(out)));
-  run_builder("P2WPKH",
-              entropylab_spk_p2wpkh(pubkey.data(), pubkey.size(), out,
-                                    sizeof(out)));
-  run_builder("P2SHWPKH",
-              entropylab_spk_p2sh_p2wpkh(pubkey.data(), pubkey.size(), out,
-                                         sizeof(out)));
-  run_builder("P2TRK", entropylab_spk_p2tr_key(xonly.data(), out, sizeof(out)));
-  run_builder("P2TRL", entropylab_spk_p2tr_leaf(xonly.data(), leaf.data(),
-                                                leaf.size(), out, sizeof(out)));
-  run_builder("P2SH", entropylab_spk_p2sh(script.data(), script.size(), out,
-                                          sizeof(out)));
-  run_builder("P2WSH", entropylab_spk_p2wsh(script.data(), script.size(), out,
-                                            sizeof(out)));
-  run_builder("MULTI", entropylab_script_multisig(ms_m, ms_pubs.data(),
-                                                  ms_pubs.size(), out,
-                                                  sizeof(out)));
-  run_builder("TRMUL", entropylab_script_multisig_tr(tr_ms_m, tr_ms_pubs.data(),
-                                                     tr_ms_pubs.size(), out,
-                                                     sizeof(out)));
+  int n;
 
-  // Standalone addr_from_script on its own input
-  int af_len = entropylab_addr_from_script(addr_script.data(), addr_script.size(),
-                                           net_sel, addr_buf, sizeof(addr_buf));
+  n = entropylab_spk_p2pkh(pubkey.data(), pubkey.size(), out, sizeof(out));
+  append_hex("P2PKH", n);
+  append_addr(n);
+
+  n = entropylab_spk_p2wpkh(pubkey.data(), pubkey.size(), out, sizeof(out));
+  append_hex("P2WPKH", n);
+  append_addr(n);
+
+  n = entropylab_spk_p2sh_p2wpkh(pubkey.data(), pubkey.size(), out,
+                                 sizeof(out));
+  append_hex("P2SHWPKH", n);
+  append_addr(n);
+
+  n = entropylab_spk_p2tr_key(xonly.data(), out, sizeof(out));
+  append_hex("P2TRK", n);
+  append_addr(n);
+
+  n = entropylab_spk_p2tr_leaf(xonly.data(), leaf.data(), leaf.size(), out,
+                               sizeof(out));
+  append_hex("P2TRL", n);
+  append_addr(n);
+
+  n = entropylab_spk_p2sh(script.data(), script.size(), out, sizeof(out));
+  append_hex("P2SH", n);
+  append_addr(n);
+
+  n = entropylab_spk_p2wsh(script.data(), script.size(), out, sizeof(out));
+  append_hex("P2WSH", n);
+  append_addr(n);
+
+  n = entropylab_script_multisig(ms_m, ms_pubs.data(), ms_pubs.size(), out,
+                                 sizeof(out));
+  append_hex("MULTI", n);
+  append_addr(n);
+
+  n = entropylab_script_multisig_tr(tr_ms_m, tr_ms_pubs.data(),
+                                    tr_ms_pubs.size(), out, sizeof(out));
+  append_hex("TRMUL", n);
+  append_addr(n);
+
+  n = entropylab_addr_from_script(addr_script.data(), addr_script.size(),
+                                  net_sel, addr_buf, sizeof(addr_buf));
   result += "AFSCR:";
-  if (af_len > 0) {
-    result.append(reinterpret_cast<const char *>(addr_buf), af_len);
+  if (n > 0) {
+    result.append(reinterpret_cast<const char *>(addr_buf), n);
   } else {
     result += "ERR";
   }
