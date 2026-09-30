@@ -30,6 +30,12 @@ HELPERS_OBJS := $(addprefix helpers/, $(addsuffix .o, $(HELPERS_SRC)))
 BITCOINFUZZ_DIR = $(shell pwd)
 CXXFLAGS += -DBITCOINFUZZ_DIR=\"$(BITCOINFUZZ_DIR)\"
 
+# Default clang-format so submodules never see an empty variable.
+ifeq ($(origin CLANG_FORMAT),undefined)
+	CLANG_FORMAT := clang-format
+endif
+export CLANG_FORMAT
+
 # macOS: Apple Clang does not ship libfuzzer. Auto-detect Homebrew LLVM.
 ifeq ($(UNAME_S), Darwin)
 	ifeq ($(origin CXX),default)
@@ -43,20 +49,17 @@ ifeq ($(UNAME_S), Darwin)
 			$(warning Apple Clang does not support -fsanitize=fuzzer. Run: make setup-macos)
 		endif
 	endif
-	ifeq ($(origin CLANG_FORMAT),undefined)
+	ifeq ($(CLANG_FORMAT),clang-format)
 		HOMEBREW_CLANG_FORMAT := $(wildcard /opt/homebrew/opt/llvm/bin/clang-format)
 		ifeq ($(HOMEBREW_CLANG_FORMAT),)
 			HOMEBREW_CLANG_FORMAT := $(wildcard /usr/local/opt/llvm/bin/clang-format)
 		endif
 		ifneq ($(HOMEBREW_CLANG_FORMAT),)
 			CLANG_FORMAT := $(HOMEBREW_CLANG_FORMAT)
-		else
-			CLANG_FORMAT := clang-format
 		endif
 	endif
 	LDFLAGS += -framework CoreFoundation
 	export CXX
-	export CLANG_FORMAT
 endif
 
 # Conditionally include module.a files based on compilation flags

@@ -4,6 +4,11 @@ override CXXFLAGS += -Wall -Wextra -fsanitize=address,fuzzer -std=c++20 -I ../..
 
 UNAME_S := $(shell uname -s)
 
+# Default clang-format so this module never sees an empty variable.
+ifeq ($(origin CLANG_FORMAT),undefined)
+	CLANG_FORMAT := clang-format
+endif
+
 # macOS: Apple Clang does not ship libfuzzer. Auto-detect Homebrew LLVM.
 ifeq ($(UNAME_S), Darwin)
 	ifeq ($(origin CXX),default)
@@ -17,7 +22,17 @@ ifeq ($(UNAME_S), Darwin)
 			$(warning Apple Clang does not support -fsanitize=fuzzer. Run: brew install llvm)
 		endif
 	endif
+	ifeq ($(CLANG_FORMAT),clang-format)
+		HOMEBREW_CLANG_FORMAT := $(wildcard /opt/homebrew/opt/llvm/bin/clang-format)
+		ifeq ($(HOMEBREW_CLANG_FORMAT),)
+			HOMEBREW_CLANG_FORMAT := $(wildcard /usr/local/opt/llvm/bin/clang-format)
+		endif
+		ifneq ($(HOMEBREW_CLANG_FORMAT),)
+			CLANG_FORMAT := $(HOMEBREW_CLANG_FORMAT)
+		endif
+	endif
 	export CXX
+	export CLANG_FORMAT
 endif
 
 CARGO_TARGET_DIR := $(shell pwd)/entropylab_fuzz_lib/target
@@ -33,6 +48,7 @@ sync-source:
 	cp ../../external/entropylab/entropylab-wasm/src/descriptor.rs entropylab_fuzz_lib/src/descriptor.rs
 	cp ../../external/entropylab/entropylab-wasm/src/aez/*.rs entropylab_fuzz_lib/src/aez/
 	cat bitcoinfuzz_wrappers.rs >> entropylab_fuzz_lib/src/lib.rs
+	cd entropylab_fuzz_lib && cargo fmt
 
 $(RUST_LIB_PATH): sync-source
 	cd entropylab_fuzz_lib && \
@@ -57,11 +73,10 @@ module.a: module.o $(RUST_LIB_PATH)
 module.o: module.cpp module.h
 	$(CXX) $(CXXFLAGS) -I . -fPIC -c module.cpp -o module.o
 
-format:
+format: sync-source
 	$(CLANG_FORMAT) -i ./module.cpp ./module.h ./entropylab_fuzz_lib/entropylab_fuzz_lib.h
-	cd entropylab_fuzz_lib && cargo fmt
 
-check-format:
+check-format: sync-source
 	$(CLANG_FORMAT) -Werror --fail-on-incomplete-format -n ./module.cpp ./module.h ./entropylab_fuzz_lib/entropylab_fuzz_lib.h
 	cd entropylab_fuzz_lib && cargo fmt --check
 

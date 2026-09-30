@@ -244,7 +244,11 @@ fn decrypt<'a>(
     let (m, auth) = ciphertext.split_at(ciphertext.len() - tau as usize);
     assert!(auth.len() == tau as usize);
 
-    if is_zeroes(auth) { Some(m) } else { None }
+    if is_zeroes(auth) {
+        Some(m)
+    } else {
+        None
+    }
 }
 
 fn is_zeroes(data: &[u8]) -> bool {
