@@ -2298,3 +2298,24 @@ pub unsafe extern "C" fn entropylab_aezeed_decipher(
     }
     el_aezeed_decipher(seed33, pass, pass_len, 15, 8, 1, out)
 }
+
+// ── scrypt_kdf ──────────────────────────────────────────────────────────────
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_scrypt_kdf(
+    pass: *const u8,
+    pass_len: usize,
+    salt: *const u8,
+    salt_len: usize,
+    log_n: u32,
+    r: u32,
+    p: u32,
+    out_len: usize,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    if out_len > cap {
+        return -1;
+    }
+    el_scrypt(pass, pass_len, salt, salt_len, log_n, r, p, out, out_len)
+}

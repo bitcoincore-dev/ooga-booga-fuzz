@@ -54,6 +54,10 @@ public:
   std::optional<std::string>
   aezeed_decipher(std::span<const uint8_t> seed33,
                   std::string passphrase) const override;
+  std::optional<std::string> scrypt_kdf(std::span<const uint8_t> password,
+                                        std::span<const uint8_t> salt,
+                                        uint32_t log_n, uint32_t r, uint32_t p,
+                                        size_t out_len) const override;
   ~Entropylab() noexcept override = default;
 };
 

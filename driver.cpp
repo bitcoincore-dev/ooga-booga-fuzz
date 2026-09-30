@@ -1336,6 +1336,30 @@ void Driver::AezeedDecipherTarget(std::span<const uint8_t> buffer) const {
   }
 }
 
+void Driver::ScryptKdfTarget(std::span<const uint8_t> buffer) const {
+  FuzzedDataProvider provider(buffer.data(), buffer.size());
+  std::vector<uint8_t> password = provider.ConsumeBytes<uint8_t>(
+      provider.ConsumeIntegralInRange<size_t>(0, 64));
+  std::vector<uint8_t> salt = provider.ConsumeBytes<uint8_t>(
+      provider.ConsumeIntegralInRange<size_t>(0, 64));
+  uint32_t log_n = provider.ConsumeIntegralInRange<uint32_t>(1, 20);
+  uint32_t r = provider.ConsumeIntegralInRange<uint32_t>(1, 8);
+  uint32_t p = provider.ConsumeIntegralInRange<uint32_t>(1, 8);
+  size_t out_len = provider.ConsumeIntegralInRange<size_t>(1, 64);
+  std::optional<std::string> last_response{std::nullopt};
+  std::string last_module_name;
+
+  for (auto &module : modules) {
+    std::optional<std::string> res{
+        module.second->scrypt_kdf(password, salt, log_n, r, p, out_len)};
+    if (!res.has_value())
+      continue;
+
+    VerifyMatchingResponse(last_response, last_module_name, module.first, *res,
+                           "scrypt KDF failed");
+  }
+}
+
 void Driver::Bech32RoundtripTarget(std::span<const uint8_t> buffer) const {
   FuzzedDataProvider provider(buffer.data(), buffer.size());
 
@@ -1516,6 +1540,8 @@ void Driver::Run(const uint8_t *data, const size_t size,
     this->Bip39ValidateTarget(buffer);
   } else if (target == "aezeed_decipher") {
     this->AezeedDecipherTarget(buffer);
+  } else if (target == "scrypt_kdf") {
+    this->ScryptKdfTarget(buffer);
   } else {
     std::cout << "Unknown target: " << target << std::endl;
     assert(false);

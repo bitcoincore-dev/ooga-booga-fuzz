@@ -46,4 +46,8 @@ extern "C" int entropylab_bip39_validate(const uint8_t *phrase,
 extern "C" int entropylab_aezeed_decipher(const uint8_t *seed33,
                                           const uint8_t *pass, size_t pass_len,
                                           uint8_t *out, size_t cap);
+extern "C" int entropylab_scrypt_kdf(const uint8_t *pass, size_t pass_len,
+                                     const uint8_t *salt, size_t salt_len,
+                                     uint32_t log_n, uint32_t r, uint32_t p,
+                                     size_t out_len, uint8_t *out, size_t cap);
 extern "C" void entropylab_free_c_string(char *ptr);

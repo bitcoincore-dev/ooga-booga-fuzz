@@ -246,8 +246,8 @@ BaseModule::hd_ckd_pub(std::span<const uint8_t> /*node*/,
   return std::nullopt;
 }
 
-std::optional<std::string>
-BaseModule::bip39_mnemonic_roundtrip(std::span<const uint8_t> /*entropy*/) const {
+std::optional<std::string> BaseModule::bip39_mnemonic_roundtrip(
+    std::span<const uint8_t> /*entropy*/) const {
   return std::nullopt;
 }
 
@@ -258,6 +258,14 @@ std::optional<bool> BaseModule::bip39_validate(std::string /*mnemonic*/) const {
 std::optional<std::string>
 BaseModule::aezeed_decipher(std::span<const uint8_t> /*seed33*/,
                             std::string /*passphrase*/) const {
+  return std::nullopt;
+}
+
+std::optional<std::string>
+BaseModule::scrypt_kdf(std::span<const uint8_t> /*password*/,
+                       std::span<const uint8_t> /*salt*/, uint32_t /*log_n*/,
+                       uint32_t /*r*/, uint32_t /*p*/,
+                       size_t /*out_len*/) const {
   return std::nullopt;
 }
 

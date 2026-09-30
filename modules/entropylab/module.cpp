@@ -214,5 +214,25 @@ Entropylab::aezeed_decipher(std::span<const uint8_t> seed33,
   return std::string(reinterpret_cast<const char *>(out.data()), result);
 }
 
+std::optional<std::string>
+Entropylab::scrypt_kdf(std::span<const uint8_t> password,
+                       std::span<const uint8_t> salt, uint32_t log_n,
+                       uint32_t r, uint32_t p, size_t out_len) const {
+  std::vector<uint8_t> out(out_len);
+  int result = entropylab_scrypt_kdf(password.data(), password.size(),
+                                     salt.data(), salt.size(), log_n, r, p,
+                                     out_len, out.data(), out.size());
+  if (result < 0)
+    return std::nullopt;
+  std::string hex;
+  hex.reserve(out.size() * 2);
+  static constexpr char kDigits[] = "0123456789abcdef";
+  for (const uint8_t b : out) {
+    hex.push_back(kDigits[b >> 4]);
+    hex.push_back(kDigits[b & 0x0f]);
+  }
+  return hex;
+}
+
 } // namespace module
 } // namespace bitcoinfuzz
