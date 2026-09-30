@@ -47,10 +47,17 @@ SYMBOL_PREFIX ?= entropylab
 sync-source:
 	rm -rf entropylab_fuzz_lib/src
 	mkdir -p entropylab_fuzz_lib/src/aez
+	mkdir -p entropylab_fuzz_lib/src/psbt
 	cp ../../external/entropylab/entropylab-wasm/src/lib.rs entropylab_fuzz_lib/src/lib.rs
 	cp ../../external/entropylab/entropylab-wasm/src/descriptor.rs entropylab_fuzz_lib/src/descriptor.rs
 	cp ../../external/entropylab/entropylab-wasm/src/aez/*.rs entropylab_fuzz_lib/src/aez/
+	cp ../../external/entropylab/psbt-wasm/src/lib.rs entropylab_fuzz_lib/src/psbt/mod.rs
+	cp ../../external/entropylab/psbt-wasm/src/verify.rs entropylab_fuzz_lib/src/psbt/verify.rs
+	cp ../../external/entropylab/psbt-wasm/src/scriptcode.rs entropylab_fuzz_lib/src/psbt/scriptcode.rs
+	cp ../../external/entropylab/psbt-wasm/src/sanitize.rs entropylab_fuzz_lib/src/psbt/sanitize.rs
+	echo 'mod psbt;' >> entropylab_fuzz_lib/src/lib.rs
 	cat bitcoinfuzz_wrappers.rs >> entropylab_fuzz_lib/src/lib.rs
+	cat psbt_bitcoinfuzz_wrappers.rs >> entropylab_fuzz_lib/src/lib.rs
 	cd entropylab_fuzz_lib && cargo fmt
 
 $(RUST_LIB_PATH): sync-source
