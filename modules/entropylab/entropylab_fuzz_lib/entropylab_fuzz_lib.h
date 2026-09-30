@@ -79,3 +79,7 @@ extern "C" int entropylab_script_multisig_tr(uint32_t m, const uint8_t *pubs,
 extern "C" int entropylab_addr_from_script(const uint8_t *script,
                                            size_t script_len, uint8_t net_sel,
                                            uint8_t *out, size_t cap);
+extern "C" int entropylab_bech32_convert_bits(const uint8_t *data,
+                                              size_t data_len, uint8_t from_bits,
+                                              uint8_t to_bits, int pad,
+                                              uint8_t *out, size_t cap);

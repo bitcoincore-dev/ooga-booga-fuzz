@@ -739,3 +739,86 @@ pub unsafe extern "C" fn entropylab_addr_from_script(
 ) -> i32 {
     el_addr_from_script(script, script_len, net_sel, out, cap)
 }
+
+// ── bech32_convert_bits ─────────────────────────────────────────────────────
+
+fn hex_encode(bytes: &[u8]) -> String {
+    const DIGITS: &[u8] = b"0123456789abcdef";
+    let mut s = String::with_capacity(bytes.len() * 2);
+    for b in bytes {
+        s.push(DIGITS[(b >> 4) as usize] as char);
+        s.push(DIGITS[(b & 0x0f) as usize] as char);
+    }
+    s
+}
+
+fn convert_bits_8_to_5(data: &[u8], pad: bool) -> Option<Vec<u8>> {
+    if !pad && (data.len() * 8) % 5 != 0 {
+        return None;
+    }
+    let mut acc = 0u32;
+    let mut bits = 0u8;
+    let mut out = Vec::new();
+    for &b in data {
+        acc = (acc << 8) | u32::from(b);
+        bits += 8;
+        while bits >= 5 {
+            bits -= 5;
+            out.push(((acc >> bits) & 0x1f) as u8);
+        }
+    }
+    if pad && bits > 0 {
+        out.push(((acc << (5 - bits)) & 0x1f) as u8);
+    }
+    Some(out)
+}
+
+fn convert_bits_5_to_8(data: &[u8], pad: bool) -> Option<Vec<u8>> {
+    if !pad && (data.len() * 5) % 8 != 0 {
+        return None;
+    }
+    let mut acc = 0u32;
+    let mut bits = 0u8;
+    let mut out = Vec::new();
+    for &b in data {
+        if b > 0x1f {
+            return None;
+        }
+        acc = (acc << 5) | u32::from(b);
+        bits += 5;
+        while bits >= 8 {
+            bits -= 8;
+            out.push(((acc >> bits) & 0xff) as u8);
+        }
+    }
+    Some(out)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn entropylab_bech32_convert_bits(
+    data: *const u8,
+    data_len: usize,
+    from_bits: u8,
+    to_bits: u8,
+    pad: i32,
+    out: *mut u8,
+    cap: usize,
+) -> i32 {
+    let input = read(data, data_len);
+    let result = match (from_bits, to_bits) {
+        (8, 5) => match convert_bits_8_to_5(input, pad != 0) {
+            Some(v) => format!("OK:{}", hex_encode(&v)),
+            None => "ERR".to_string(),
+        },
+        (5, 8) => match convert_bits_5_to_8(input, pad != 0) {
+            Some(v) => format!("OK:{}", hex_encode(&v)),
+            None => "ERR".to_string(),
+        },
+        _ => "ERR".to_string(),
+    };
+    if result.len() > cap {
+        return -1;
+    }
+    std::ptr::copy_nonoverlapping(result.as_ptr(), out, result.len());
+    result.len() as i32
+}

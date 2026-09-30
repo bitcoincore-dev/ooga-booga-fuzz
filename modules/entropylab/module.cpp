@@ -348,5 +348,16 @@ Entropylab::script_build_roundtrip(std::span<const uint8_t> buffer) const {
   return result;
 }
 
+std::optional<std::string>
+Entropylab::bech32_convert_bits(const Bech32ConvertBitsInput &input) const {
+  std::vector<uint8_t> out(256);
+  int result = entropylab_bech32_convert_bits(
+      input.data.data(), input.data.size(), input.from_bits, input.to_bits,
+      input.pad ? 1 : 0, out.data(), out.size());
+  if (result < 0)
+    return std::nullopt;
+  return std::string(reinterpret_cast<const char *>(out.data()), result);
+}
+
 } // namespace module
 } // namespace bitcoinfuzz

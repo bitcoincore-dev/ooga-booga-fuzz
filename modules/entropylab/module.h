@@ -60,6 +60,8 @@ public:
                                         size_t out_len) const override;
   std::optional<std::string>
   script_build_roundtrip(std::span<const uint8_t> buffer) const override;
+  std::optional<std::string>
+  bech32_convert_bits(const Bech32ConvertBitsInput &input) const override;
   ~Entropylab() noexcept override = default;
 };
 
