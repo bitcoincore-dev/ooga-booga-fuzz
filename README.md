@@ -1,5 +1,7 @@
 # ooga-booga-fuzz
 
+[![Test](https://github.com/bitcoincore-dev/ooga-booga-fuzz/actions/workflows/test.yml/badge.svg)](https://github.com/bitcoincore-dev/ooga-booga-fuzz/actions/workflows/test.yml)
+
 Differential fuzzing for [entropylab](https://github.com/OogaBoogaX/entropylab) via the
 bitcoinfuzz harness. This repo builds entropylab's WebAssembly crypto layer as a
 native static library and fuzzes it against other Bitcoin implementations.

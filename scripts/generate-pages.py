@@ -124,7 +124,7 @@ def md_to_html(md_text: str) -> str:
 </head>
 <body>
 <h1>Ooga-Booga-Fuzz: Entropylab Coverage Matrix</h1>
-<p>Generated from <a href="https://github.com/bitcoincore-dev/ooga-booga-fuzz/blob/v2/OOGA-BOOGA.md">OOGA-BOOGA.md</a>.</p>
+<p><a href="https://github.com/bitcoincore-dev/ooga-booga-fuzz/actions/workflows/test.yml"><img src="https://github.com/bitcoincore-dev/ooga-booga-fuzz/actions/workflows/test.yml/badge.svg" alt="Test"></a></p>
 {"".join(sections)}
 <footer>
   <p>Last updated: {__import__('datetime').datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}</p>
