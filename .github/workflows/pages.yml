@@ -23,19 +23,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
+        if: ${{ !env.ACT }}
         uses: actions/checkout@v4
 
       - name: Setup Python
+        if: ${{ !env.ACT }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Generate coverage matrix page
+        if: ${{ !env.ACT }}
         run: |
           mkdir -p site
           python3 scripts/generate-pages.py
 
       - name: Upload artifact
+        if: ${{ !env.ACT }}
         uses: actions/upload-pages-artifact@v3
         with:
           path: site
@@ -48,5 +52,6 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
+        if: ${{ !env.ACT }}
         id: deployment
         uses: actions/deploy-pages@v4
