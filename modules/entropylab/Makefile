@@ -65,7 +65,7 @@ sync-source:
 	echo 'mod psbt;' >> entropylab_fuzz_lib/src/lib.rs
 	cat bitcoinfuzz_wrappers.rs >> entropylab_fuzz_lib/src/lib.rs
 	cat psbt_bitcoinfuzz_wrappers.rs >> entropylab_fuzz_lib/src/lib.rs
-	cd entropylab_fuzz_lib && cargo fmt
+	-cd entropylab_fuzz_lib && cargo fmt
 
 $(RUST_LIB_PATH): sync-source
 	cd entropylab_fuzz_lib && \
