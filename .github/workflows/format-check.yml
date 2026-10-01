@@ -10,7 +10,7 @@ on:
       - '**/*.md'
 jobs:
   format-check:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest #ubuntu-24.04
 
     steps:
       - name: Checkout repo
