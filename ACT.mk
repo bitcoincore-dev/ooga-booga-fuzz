@@ -2,7 +2,7 @@
 # https://github.com/nektos/act
 #
 # Usage:
-#   make -f ACT.mk help              Show all targets
+#   make -f ACT.mk act-help          Show all targets
 #   make -f ACT.mk install-act       Install act (macOS/Linux)
 #   make -f ACT.mk act-test          Run the test workflow
 #   make -f ACT.mk act-check         Run the main CI workflow (build + test matrix)
@@ -41,38 +41,39 @@ ifneq ($(ACT_JOB),)
 	ACT_BASE_ARGS += -j $(ACT_JOB)
 endif
 
-.PHONY: help install-act act-list \
+.PHONY: act-help install-act act-list \
         act-test act-check act-format \
         act-commit-build act-docker-check act-pages \
         act-build-job act-all
 
-help:
+act-help:
 	@echo "ACT.mk — Run GitHub Actions locally"
 	@echo ""
 	@echo "Install"
-	@echo "  make -f ACT.mk install-act       Install act (Homebrew or curl)"
+	@echo "  make act-help                    Show this message (also: make -f ACT.mk act-help)"
+	@echo "  make install-act                 Install act (Homebrew or curl)"
 	@echo ""
 	@echo "List / inspect"
-	@echo "  make -f ACT.mk act-list          List workflows and jobs"
+	@echo "  make act-list                    List workflows and jobs"
 	@echo ""
 	@echo "Run individual workflows"
-	@echo "  make -f ACT.mk act-test          Run .github/workflows/test.yml"
-	@echo "  make -f ACT.mk act-check         Run .github/workflows/workflow.yml"
-	@echo "  make -f ACT.mk act-format        Run .github/workflows/format-check.yml"
-	@echo "  make -f ACT.mk act-commit-build  Run .github/workflows/commit-by-commit-build.yml"
-	@echo "  make -f ACT.mk act-docker-check  Run .github/workflows/docker-image-check.yml"
-	@echo "  make -f ACT.mk act-pages         Run .github/workflows/pages.yml"
+	@echo "  make act-test                    Run .github/workflows/test.yml"
+	@echo "  make act-check                   Run .github/workflows/workflow.yml"
+	@echo "  make act-format                  Run .github/workflows/format-check.yml"
+	@echo "  make act-commit-build            Run .github/workflows/commit-by-commit-build.yml"
+	@echo "  make act-docker-check            Run .github/workflows/docker-image-check.yml"
+	@echo "  make act-pages                   Run .github/workflows/pages.yml"
 	@echo ""
 	@echo "Run specific jobs"
-	@echo "  make -f ACT.mk act-build-job     Run only the 'build' job from workflow.yml"
-	@echo "  make -f ACT.mk act-test JOB=build"
+	@echo "  make act-build-job               Run only the 'build' job from workflow.yml"
+	@echo "  make act-test ACT_JOB=build"
 	@echo ""
 	@echo "Run everything"
-	@echo "  make -f ACT.mk act-all           Run all workflows sequentially"
+	@echo "  make act-all                     Run all workflows sequentially"
 	@echo ""
 	@echo "Overrides"
 	@echo "  ACT_EXTRA_ARGS=...               Append arbitrary act flags"
-	@echo "  ACT_JOB=... / JOB=...            Run a specific job name"
+	@echo "  ACT_JOB=...                      Run a specific job name"
 	@echo "  GITHUB_TOKEN=...                 Provide a PAT (default: \`gh auth token\`)"
 
 install-act:

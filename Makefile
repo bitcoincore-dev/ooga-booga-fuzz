@@ -13,6 +13,7 @@ help:
 	@echo "  make run-macos-entropylab Run all Entropylab fuzz targets (macOS)"
 	@echo "  make format               Format C++ code"
 	@echo "  make check-format         Check C++ code formatting"
+	@echo "  make act-help             Show CI / act targets"
 	@echo ""
 	@echo "Examples:"
 	@echo "  CXXFLAGS=\"-DENTROPYLAB\" make bitcoinfuzz"
@@ -350,5 +351,7 @@ clean:
 	rm -rf *.o module.a bitcoinfuzz include/bitcoinfuzz/*.o helpers/*.o $(MODULES)
 	rm -rf modules/eclair/eclair.zip modules/eclair/lib modules/eclair/eclair_extracted
 
+
+-include ACT.mk
 
 .PHONY: all bitcoinfuzz setup-macos run-macos run-macos-entropylab run-entropylab _run-entropylab
