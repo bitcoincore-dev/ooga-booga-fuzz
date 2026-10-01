@@ -2643,7 +2643,7 @@ fn format_psbt(doc: &serde_json::Value) -> Option<String> {
                         }
                     }
                 }
-                "PSBT_IN_BIP32_DERIVATION" | "PSBT_IN_TAP_BIP32_DERIVATION" => bip32_count += 1,
+                "PSBT_IN_BIP32_DERIVATION" => bip32_count += 1,
                 "PSBT_IN_FINAL_SCRIPTSIG" => {
                     if let Some(val) = pair.get("value")?.as_str() {
                         if !val.is_empty() {
@@ -2698,7 +2698,7 @@ fn format_psbt(doc: &serde_json::Value) -> Option<String> {
                 "PSBT_OUT_WITNESS_SCRIPT" => {
                     witness_script = pair.get("value")?.as_str()?.to_string();
                 }
-                "PSBT_OUT_BIP32_DERIVATION" | "PSBT_OUT_TAP_BIP32_DERIVATION" => bip32_count += 1,
+                "PSBT_OUT_BIP32_DERIVATION" => bip32_count += 1,
                 _ => {}
             }
         }
