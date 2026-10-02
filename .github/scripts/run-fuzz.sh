@@ -16,7 +16,7 @@ if [ -d "./corpora/${CORPUS_DIR}" ]; then
   export CXXFLAGS="${CXXFLAGS}"
   export CXX="${CXX}"
   [[ -n "${ASAN_OPTIONS}" ]] && export ASAN_OPTIONS="${ASAN_OPTIONS}"
-  make
+  make bitcoinfuzz
   FUZZ="${TARGET}" ./bitcoinfuzz -runs=1 "$@" "./corpora/${CORPUS_DIR}"
 else
   echo "Corpus ./corpora/${CORPUS_DIR} does not exist. Skipping."
