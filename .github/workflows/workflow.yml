@@ -127,6 +127,9 @@ jobs:
           ONLY_MODULES=1 \
           ./scripts/auto_build.py
 
+      - name: Build bitcoinfuzz binary
+        run: make bitcoinfuzz
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
