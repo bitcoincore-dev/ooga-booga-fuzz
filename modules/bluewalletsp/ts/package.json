@@ -9,7 +9,7 @@
     "bech32": "^2.0.0",
     "ecpair": "3.0.0",
     "silent-payments": "github:BlueWallet/SilentPayments#37addd49b919281e0dc0eb40d0af46ecf9ef26fd",
-    "tiny-secp256k1": "^2.2.4"
+    "tiny-secp256k1": "^2.2.5"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
